@@ -1,0 +1,47 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "com.moko.beaconx"
+        minSdkVersion 18
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    sourceSets {
+        lintOptions {
+            abortOnError false
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                //这里修改apk文件名
+                def fileName = "MokoBeaconX-${defaultConfig.versionName}.apk"
+                if (outputFile.name.contains('debug')) {
+                    fileName = "MokoBeaconX-${defaultConfig.versionName}-debug.apk"
+                }
+                output.outputFile = new File(outputFile.parent, fileName)
+            }
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: '*.jar', dir: 'libs')
+    compile 'com.jakewharton:butterknife:7.0.0'
+    compile 'com.android.support:support-v4:23.1.0'
+    compile project(path: ':mokosupport')
+}
