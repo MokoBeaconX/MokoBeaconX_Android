@@ -253,6 +253,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
                 }
                 break;
             case R.id.iv_about:
+                startActivity(new Intent(this, AboutActivity.class));
                 break;
             case R.id.rl_edit_filter:
                 break;
