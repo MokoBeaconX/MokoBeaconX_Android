@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
@@ -70,8 +71,13 @@ public class GuideActivity extends Activity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
         } else {
-            startActivity(new Intent(GuideActivity.this, MainActivity.class));
-            GuideActivity.this.finish();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startActivity(new Intent(GuideActivity.this, MainActivity.class));
+                    GuideActivity.this.finish();
+                }
+            }, 2000);
         }
     }
 

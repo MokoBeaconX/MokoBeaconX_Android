@@ -11,30 +11,61 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.View;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.moko.beaconx.R;
+import com.moko.beaconx.adapter.BeaconXListAdapter;
+import com.moko.beaconx.entity.BeaconXInfo;
 import com.moko.beaconx.service.MokoService;
+import com.moko.beaconx.utils.BeaconXInfoParseableImpl;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.callback.MokoScanDeviceCallback;
 import com.moko.support.entity.DeviceInfo;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+
+import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 
 public class MainActivity extends Activity implements MokoScanDeviceCallback {
 
 
+    @Bind(R.id.iv_refresh)
+    ImageView ivRefresh;
+    @Bind(R.id.lv_devices)
+    ListView lvDevices;
+    @Bind(R.id.tv_device_num)
+    TextView tvDeviceNum;
     private MokoService mMokoService;
+    private HashMap<String, BeaconXInfo> beaconXInfoHashMap;
+    private ArrayList<BeaconXInfo> beaconXInfos;
+    private BeaconXListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        bindService(new Intent(this, MokoService.class), mServiceConnection, BIND_AUTO_CREATE);
-
+        Intent intent = new Intent(this, MokoService.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+        beaconXInfoHashMap = new HashMap<>();
+        beaconXInfos = new ArrayList<>();
+        adapter = new BeaconXListAdapter(this);
+        adapter.setItems(beaconXInfos);
+        lvDevices.setAdapter(adapter);
     }
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -118,18 +149,45 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
 
     @Override
     public void onStartScan() {
-        showScaningProgressDialog();
     }
+
+    private BeaconXInfoParseableImpl beaconXInfoParseable;
 
     @Override
     public void onScanDevice(DeviceInfo deviceInfo) {
-
+        final BeaconXInfo beaconXInfo = beaconXInfoParseable.parseDeviceInfo(deviceInfo);
+        if (beaconXInfo == null) {
+            return;
+        }
+        beaconXInfoHashMap.put(beaconXInfo.mac, beaconXInfo);
+        updateDevices();
     }
 
     @Override
     public void onStopScan() {
-
+        findViewById(R.id.iv_refresh).clearAnimation();
+        animation = null;
+        updateDevices();
     }
+
+    private void updateDevices() {
+        beaconXInfos.clear();
+        beaconXInfos.addAll(beaconXInfoHashMap.values());
+        Collections.sort(beaconXInfos, new Comparator<BeaconXInfo>() {
+            @Override
+            public int compare(BeaconXInfo lhs, BeaconXInfo rhs) {
+                if (lhs.rssi > rhs.rssi) {
+                    return -1;
+                } else if (lhs.rssi < rhs.rssi) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+        adapter.notifyDataSetChanged();
+        tvDeviceNum.setText(String.format("Devices(%d)", beaconXInfos.size()));
+    }
+
 
     private ProgressDialog mScaningDialog;
 
@@ -171,4 +229,33 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
         }
     }
 
+    private Animation animation = null;
+
+    @OnClick({R.id.iv_refresh, R.id.iv_about, R.id.rl_edit_filter})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.iv_refresh:
+                if (animation == null) {
+                    beaconXInfoHashMap.clear();
+                    animation = AnimationUtils.loadAnimation(this, R.anim.rotate_refresh);
+                    view.startAnimation(animation);
+                    beaconXInfoParseable = new BeaconXInfoParseableImpl();
+                    mMokoService.startScanDevice(this);
+                    mMokoService.mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mMokoService.stopScanDevice();
+                        }
+                    }, 1000 * 60);
+                } else {
+                    mMokoService.mHandler.removeMessages(0);
+                    mMokoService.stopScanDevice();
+                }
+                break;
+            case R.id.iv_about:
+                break;
+            case R.id.rl_edit_filter:
+                break;
+        }
+    }
 }
