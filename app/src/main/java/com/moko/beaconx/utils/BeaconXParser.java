@@ -73,11 +73,14 @@ public class BeaconXParser {
         tlm.temp = String.format("%s.%s°C", temp1, temp2);
         tlm.adv_cnt = Integer.parseInt(data.substring(12, 20), 16) + "";
         int seconds = Integer.parseInt(data.substring(20, 28), 16);
-        int runtimeDays = seconds / (60 * 60 * 24);
-        int runtimeHours = (seconds % (60 * 60 * 24)) / (60 * 60);
-        int runtimeMinutes = (seconds % (60 * 60)) / (60);
-        int runtimeSeconds = (seconds % (60)) / 1000;
-        tlm.sec_cnt = String.format("%dD%dh%dm%ds", runtimeDays, runtimeHours, runtimeMinutes, runtimeSeconds);
+        int day = 0, hours = 0, minutes = 0;
+        day = seconds / (60 * 60 * 24);
+        seconds -= day * 60 * 60 * 24;
+        hours = seconds / (60 * 60);
+        seconds -= hours * 60 * 60;
+        minutes = seconds / 60;
+        seconds -= minutes * 60;
+        tlm.sec_cnt = String.format("%dD%dh%dm%ds", day, hours, minutes, seconds);
         return tlm;
     }
 

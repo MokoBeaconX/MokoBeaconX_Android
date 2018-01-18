@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="58dp"
+        android:background="@drawable/shape_radius_white_bg"
+        android:orientation="vertical"
+        android:padding="15dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/shape_radius_blue_frame"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/et_filter_name"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.0"
+                android:background="@color/transparent"
+                android:gravity="center_vertical"
+                android:hint="Device name or mac address"
+                android:paddingLeft="10dp"
+                android:singleLine="true" />
+
+            <ImageView
+                android:id="@+id/iv_filter_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:src="@drawable/filter_delete" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/wifi"
+                android:drawablePadding="10dp"
+                android:text="RSSI:" />
+
+            <SeekBar
+                android:id="@+id/sb_rssi"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1.0"
+                android:max="127"
+                android:progress="0" />
+
+            <TextView
+                android:id="@+id/tv_rssi"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:text="" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_done"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/shape_radius_blue_btn_bg"
+            android:gravity="center"
+            android:paddingBottom="10dp"
+            android:paddingTop="10dp"
+            android:text="Done"
+            android:textColor="@color/white_ffffff"
+            android:textSize="20dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>

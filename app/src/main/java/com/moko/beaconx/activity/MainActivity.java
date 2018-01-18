@@ -11,16 +11,19 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.moko.beaconx.R;
 import com.moko.beaconx.adapter.BeaconXListAdapter;
+import com.moko.beaconx.dialog.ScanFilterDialog;
 import com.moko.beaconx.entity.BeaconXInfo;
 import com.moko.beaconx.service.MokoService;
 import com.moko.beaconx.utils.BeaconXInfoParseableImpl;
@@ -33,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -48,6 +52,12 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
     ListView lvDevices;
     @Bind(R.id.tv_device_num)
     TextView tvDeviceNum;
+    @Bind(R.id.rl_edit_filter)
+    RelativeLayout rl_edit_filter;
+    @Bind(R.id.rl_filter)
+    RelativeLayout rl_filter;
+    @Bind(R.id.tv_filter)
+    TextView tv_filter;
     private MokoService mMokoService;
     private HashMap<String, BeaconXInfo> beaconXInfoHashMap;
     private ArrayList<BeaconXInfo> beaconXInfos;
@@ -172,7 +182,24 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
 
     private void updateDevices() {
         beaconXInfos.clear();
-        beaconXInfos.addAll(beaconXInfoHashMap.values());
+        if (!TextUtils.isEmpty(filterName) || filterRssi != -127) {
+            ArrayList<BeaconXInfo> beaconXInfosFilter = new ArrayList<>(beaconXInfoHashMap.values());
+            Iterator<BeaconXInfo> iterator = beaconXInfosFilter.iterator();
+            while (iterator.hasNext()) {
+                BeaconXInfo beaconXInfo = iterator.next();
+                if (beaconXInfo.rssi > filterRssi
+                        && (TextUtils.isEmpty(filterName)
+                        || (!TextUtils.isEmpty(filterName) && (!TextUtils.isEmpty(beaconXInfo.name) && (!TextUtils.isEmpty(beaconXInfo.mac))
+                        && (beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase()) || beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase())))))) {
+                    continue;
+                } else {
+                    iterator.remove();
+                }
+            }
+            beaconXInfos.addAll(beaconXInfosFilter);
+        } else {
+            beaconXInfos.addAll(beaconXInfoHashMap.values());
+        }
         Collections.sort(beaconXInfos, new Comparator<BeaconXInfo>() {
             @Override
             public int compare(BeaconXInfo lhs, BeaconXInfo rhs) {
@@ -230,12 +257,17 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
     }
 
     private Animation animation = null;
+    public String filterName;
+    public int filterRssi = -127;
 
-    @OnClick({R.id.iv_refresh, R.id.iv_about, R.id.rl_edit_filter})
+    @OnClick({R.id.iv_refresh, R.id.iv_about, R.id.rl_edit_filter, R.id.rl_filter})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.iv_refresh:
                 if (animation == null) {
+                    if (!MokoSupport.getInstance().isBluetoothOpen()) {
+                        return;
+                    }
                     beaconXInfoHashMap.clear();
                     animation = AnimationUtils.loadAnimation(this, R.anim.rotate_refresh);
                     view.startAnimation(animation);
@@ -256,6 +288,40 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
                 startActivity(new Intent(this, AboutActivity.class));
                 break;
             case R.id.rl_edit_filter:
+                ScanFilterDialog scanFilterDialog = new ScanFilterDialog(this);
+                scanFilterDialog.setOnScanFilterListener(new ScanFilterDialog.OnScanFilterListener() {
+                    @Override
+                    public void onDone(String filterName, int filterRssi) {
+                        MainActivity.this.filterName = filterName;
+                        MainActivity.this.filterRssi = filterRssi;
+                        if (!TextUtils.isEmpty(filterName) || filterRssi != -127) {
+                            rl_filter.setVisibility(View.VISIBLE);
+                            rl_edit_filter.setVisibility(View.GONE);
+                            StringBuilder stringBuilder = new StringBuilder();
+                            if (!TextUtils.isEmpty(filterName)) {
+                                stringBuilder.append(filterName);
+                                stringBuilder.append(";");
+                            }
+                            if (filterRssi != -127) {
+                                stringBuilder.append(String.format("%sdBm", filterRssi + ""));
+                                stringBuilder.append(";");
+                            }
+                            tv_filter.setText(stringBuilder.toString());
+                            updateDevices();
+                        } else {
+                            rl_filter.setVisibility(View.GONE);
+                            rl_edit_filter.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+                scanFilterDialog.show();
+                break;
+            case R.id.rl_filter:
+                rl_filter.setVisibility(View.GONE);
+                rl_edit_filter.setVisibility(View.VISIBLE);
+                filterName = "";
+                filterRssi = -127;
+                updateDevices();
                 break;
         }
     }
