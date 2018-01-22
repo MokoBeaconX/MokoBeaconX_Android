@@ -387,11 +387,6 @@ public class MokoSupport implements MokoResponseCallback {
 
     private void orderTimeoutHandler(final OrderTask orderTask) {
         long delayTime = 3000;
-        switch (orderTask.orderType) {
-            case deviceInfoWrite:
-                delayTime = 5000;
-                break;
-        }
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -412,7 +407,7 @@ public class MokoSupport implements MokoResponseCallback {
             OrderTask orderTask = mQueue.peek();
             if (value != null && value.length > 0) {
                 switch (orderTask.orderType) {
-                    case deviceInfoWrite:
+                    case writeConfig:
                         formatCommonOrder(orderTask, value);
                         break;
                 }
@@ -439,17 +434,14 @@ public class MokoSupport implements MokoResponseCallback {
         OrderTask orderTask = mQueue.peek();
         if (value != null && value.length > 0) {
             switch (orderTask.orderType) {
-                case scale:
-                case wifiSSID:
-                case wifiPassword:
-                case wifiSecurity:
-                case temperatureTarget:
-                case hour:
-                case minute:
-                case delayHour:
-                case delayMinute:
-                case isRunning:
-                case mqttId:
+                case advSlot:
+                case advInterval:
+                case radioTxPower:
+                case advTxPower:
+                case lockState:
+                case unLock:
+                case advSlotData:
+                case resetDevice:
                     formatCommonOrder(orderTask, value);
                     break;
             }
@@ -464,16 +456,20 @@ public class MokoSupport implements MokoResponseCallback {
         OrderTask orderTask = mQueue.peek();
         if (value != null && value.length > 0) {
             switch (orderTask.orderType) {
-                case temperature:
-                case hour:
-                case minute:
-                case delayMinute:
-                case delayHour:
-                case scale:
-                case error:
-                case isRunning:
-                case temperatureTarget:
-                case isConnectedToWifi:
+                case manufacturer:
+                case deviceModel:
+                case productDate:
+                case hardwareVersion:
+                case firmwareVersion:
+                case softwareVersion:
+                case battery:
+                case advSlot:
+                case advInterval:
+                case radioTxPower:
+                case advTxPower:
+                case lockState:
+                case unLock:
+                case advSlotData:
                     formatCommonOrder(orderTask, value);
                     break;
             }

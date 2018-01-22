@@ -9,22 +9,23 @@ import java.io.Serializable;
  * @ClassPath com.moko.support.entity.OrderType
  */
 public enum OrderType implements Serializable {
-    deviceInfo("deviceInfo", "0000ffc2-0000-1000-8000-00805f9b34fb"),
-    deviceInfoWrite("deviceInfoWrite", "0000ffc1-0000-1000-8000-00805f9b34fb"),
-    temperature("temperature", "0000fff0-0000-1000-8000-00805f9b34fb"),
-    hour("hour", "0000fff1-0000-1000-8000-00805f9b34fb"),
-    minute("minute", "0000fff2-0000-1000-8000-00805f9b34fb"),
-    delayHour("delayHour", "0000fff3-0000-1000-8000-00805f9b34fb"),
-    delayMinute("delayMinute", "0000fff4-0000-1000-8000-00805f9b34fb"),
-    scale("scale", "0000fff5-0000-1000-8000-00805f9b34fb"),
-    error("error", "0000fff6-0000-1000-8000-00805f9b34fb"),
-    isRunning("isRunning", "0000fff7-0000-1000-8000-00805f9b34fb"),
-    temperatureTarget("temperatureTarget", "0000fff8-0000-1000-8000-00805f9b34fb"),
-    isConnectedToWifi("isConnectedToWifi", "0000fff9-0000-1000-8000-00805f9b34fb"),
-    wifiSSID("wifiSSID", "0000fffa-0000-1000-8000-00805f9b34fb"),
-    wifiPassword("wifiPassword", "0000fffb-0000-1000-8000-00805f9b34fb"),
-    wifiSecurity("wifiSecurity", "0000fffc-0000-1000-8000-00805f9b34fb"),
-    mqttId("mqttId", "0000fffd-0000-1000-8000-00805f9b34fb");
+    manufacturer("manufacturer", "00002a29-0000-1000-8000-00805f9b34fb"),
+    deviceModel("deviceModel", "00002a24-0000-1000-8000-00805f9b34fb"),
+    productDate("productDate", "00002a25-0000-1000-8000-00805f9b34fb"),
+    hardwareVersion("hardwareVersion", "00002a27-0000-1000-8000-00805f9b34fb"),
+    firmwareVersion("firmwareVersion", "00002a26-0000-1000-8000-00805f9b34fb"),
+    softwareVersion("softwareVersion", "00002a28-0000-1000-8000-00805f9b34fb"),
+    battery("battery", "00002a19-0000-1000-8000-00805f9b34fb"),
+    notifyConfig("notifyConfig", "e62a0003-1362-4f28-9327-f5b74e970801"),
+    writeConfig("writeConfig", "e62a0002-1362-4f28-9327-f5b74e970801"),
+    advSlot("advSlot", "a3c87502-8ed3-4bdf-8a39-a01bebede295"),
+    advInterval("advInterval", "a3c87503-8ed3-4bdf-8a39-a01bebede295"),
+    radioTxPower("radioTxPower", "a3c87504-8ed3-4bdf-8a39-a01bebede295"),
+    advTxPower("advTxPower", "a3c87505-8ed3-4bdf-8a39-a01bebede295"),
+    lockState("lockState", "a3c87506-8ed3-4bdf-8a39-a01bebede295"),
+    unLock("unLock", "a3c87507-8ed3-4bdf-8a39-a01bebede295"),
+    advSlotData("advSlotData", "a3c8750a-8ed3-4bdf-8a39-a01bebede295"),
+    resetDevice("resetDevice", "a3c8750b-8ed3-4bdf-8a39-a01bebede295");
 
 
     private String uuid;

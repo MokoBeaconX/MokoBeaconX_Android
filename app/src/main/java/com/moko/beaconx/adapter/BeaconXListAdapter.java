@@ -45,14 +45,16 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         setView(holder, device);
     }
 
-    private void setView(DeviceViewHolder holder, BeaconXInfo device) {
+    private void setView(DeviceViewHolder holder, final BeaconXInfo device) {
         holder.tvName.setText(TextUtils.isEmpty(device.name) ? "N/A" : device.name);
         holder.tvMac.setText(device.mac);
         holder.tvRssi.setText(device.rssi + "");
         holder.tvConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LogModule.i("连接");
+                if (listener != null) {
+                    listener.onConnectClick(device);
+                }
             }
         });
         LogModule.i(device.toString());
@@ -160,6 +162,10 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         return new DeviceViewHolder(convertView);
     }
 
+    public void setListener(OnConnectListener listener) {
+        this.listener = listener;
+    }
+
     static class DeviceViewHolder extends ViewHolder {
         @Bind(R.id.tv_name)
         TextView tvName;
@@ -178,5 +184,11 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
             super(convertView);
             ButterKnife.bind(this, convertView);
         }
+    }
+
+    private OnConnectListener listener;
+
+    public interface OnConnectListener {
+        void onConnectClick(BeaconXInfo beaconXInfo);
     }
 }

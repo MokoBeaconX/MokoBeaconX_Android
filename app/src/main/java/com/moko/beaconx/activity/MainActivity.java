@@ -31,6 +31,7 @@ import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.callback.MokoScanDeviceCallback;
 import com.moko.support.entity.DeviceInfo;
+import com.moko.support.log.LogModule;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +44,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 
-public class MainActivity extends Activity implements MokoScanDeviceCallback {
+public class MainActivity extends Activity implements MokoScanDeviceCallback, BeaconXListAdapter.OnConnectListener {
 
 
     @Bind(R.id.iv_refresh)
@@ -74,6 +75,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
         beaconXInfoHashMap = new HashMap<>();
         beaconXInfos = new ArrayList<>();
         adapter = new BeaconXListAdapter(this);
+        adapter.setListener(this);
         adapter.setItems(beaconXInfos);
         lvDevices.setAdapter(adapter);
     }
@@ -90,6 +92,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
             filter.addAction(MokoConstants.ACTION_RESPONSE_SUCCESS);
             filter.addAction(MokoConstants.ACTION_RESPONSE_TIMEOUT);
             filter.addAction(MokoConstants.ACTION_RESPONSE_FINISH);
+            filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
             filter.setPriority(100);
             registerReceiver(mReceiver, filter);
             if (!MokoSupport.getInstance().isBluetoothOpen()) {
@@ -112,10 +115,10 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
             if (intent != null) {
                 String action = intent.getAction();
                 if (MokoConstants.ACTION_CONNECT_SUCCESS.equals(action)) {
-
+                    dismissLoadingProgressDialog();
                 }
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
-
+                    dismissLoadingProgressDialog();
                 }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
 
@@ -124,6 +127,16 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
 
                 }
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
+                }
+                if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                    int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
+                    switch (blueState) {
+                        case BluetoothAdapter.STATE_TURNING_OFF:
+                            mMokoService.mHandler.removeMessages(0);
+                            mMokoService.stopScanDevice();
+                            break;
+
+                    }
                 }
             }
         }
@@ -266,6 +279,9 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
             case R.id.iv_refresh:
                 if (animation == null) {
                     if (!MokoSupport.getInstance().isBluetoothOpen()) {
+                        // 蓝牙未打开，开启蓝牙
+                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
                         return;
                     }
                     beaconXInfoHashMap.clear();
@@ -323,6 +339,23 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback {
                 filterRssi = -127;
                 updateDevices();
                 break;
+        }
+    }
+
+    @Override
+    public void onConnectClick(BeaconXInfo beaconXInfo) {
+        if (!MokoSupport.getInstance().isBluetoothOpen()) {
+            // 蓝牙未打开，开启蓝牙
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
+            return;
+        }
+        if (beaconXInfo != null) {
+            LogModule.i("选中的设备：" + beaconXInfo.mac);
+            mMokoService.connDevice(beaconXInfo.mac);
+            showLoadingProgressDialog();
+            mMokoService.mHandler.removeMessages(0);
+            mMokoService.stopScanDevice();
         }
     }
 }
