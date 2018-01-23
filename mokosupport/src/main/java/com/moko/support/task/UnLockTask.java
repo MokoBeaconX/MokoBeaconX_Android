@@ -21,4 +21,8 @@ public class UnLockTask extends OrderTask {
     public byte[] assemble() {
         return data;
     }
+
+    public void setData(byte[] unLockBytes) {
+        data = unLockBytes;
+    }
 }

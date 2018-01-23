@@ -162,11 +162,11 @@ public class MokoCharacteristicHandler {
 //            List<BluetoothGattCharacteristic> characteristicList = service.getCharacteristics();
 //            for (BluetoothGattCharacteristic characteristic : characteristicList) {
 //                LogModule.i("   characteristic uuid:" + characteristic.getUuid().toString());
-//                LogModule.i("   characteristic properties:" + Utils.getCharPropertie(characteristic.getProperties()));
+//                LogModule.i("   characteristic properties:" + MokoUtils.getCharPropertie(characteristic.getProperties()));
 //                List<BluetoothGattDescriptor> descriptors = characteristic.getDescriptors();
 //                for (BluetoothGattDescriptor descriptor : descriptors) {
 //                    LogModule.i("       descriptor uuid:" + descriptor.getUuid().toString());
-//                    LogModule.i("       descriptor value:" + Utils.bytesToHexString(descriptor.getValue()));
+//                    LogModule.i("       descriptor value:" + MokoUtils.bytesToHexString(descriptor.getValue()));
 //                }
 //            }
         }

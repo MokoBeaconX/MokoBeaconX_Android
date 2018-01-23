@@ -1,6 +1,6 @@
 package com.moko.support.callback;
 
-import com.moko.support.entity.OrderType;
+import com.moko.support.task.OrderTaskResponse;
 
 /**
  * @Date 2017/5/10
@@ -10,9 +10,9 @@ import com.moko.support.entity.OrderType;
  */
 public interface MokoOrderTaskCallback {
 
-    void onOrderResult(OrderType orderType, byte[] value);
+    void onOrderResult(OrderTaskResponse response);
 
-    void onOrderTimeout(OrderType orderType);
+    void onOrderTimeout(OrderTaskResponse response);
 
     void onOrderFinish();
 }

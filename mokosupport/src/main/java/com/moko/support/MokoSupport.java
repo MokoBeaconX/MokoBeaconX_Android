@@ -25,7 +25,7 @@ import com.moko.support.handler.MokoLeScanHandler;
 import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTask;
 import com.moko.support.utils.BleConnectionCompat;
-import com.moko.support.utils.Utils;
+import com.moko.support.utils.MokoUtils;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -260,7 +260,7 @@ public class MokoSupport implements MokoResponseCallback {
         if (orderTasks.length == 0) {
             return;
         }
-        if (mQueue.isEmpty()) {
+        if (!isSyncData()) {
             for (OrderTask ordertask : orderTasks) {
                 if (ordertask == null) {
                     continue;
@@ -279,7 +279,7 @@ public class MokoSupport implements MokoResponseCallback {
     }
 
     private void executeTask(MokoOrderTaskCallback callback) {
-        if (callback != null && mQueue.isEmpty()) {
+        if (callback != null && !isSyncData()) {
             callback.onOrderFinish();
             return;
         }
@@ -297,16 +297,16 @@ public class MokoSupport implements MokoResponseCallback {
             LogModule.i("executeTask : mokoCharacteristic is null");
             return;
         }
-        if (orderTask.responseType == OrderTask.RESPONSE_TYPE_READ) {
+        if (orderTask.response.responseType == OrderTask.RESPONSE_TYPE_READ) {
             sendReadOrder(orderTask, mokoCharacteristic);
         }
-        if (orderTask.responseType == OrderTask.RESPONSE_TYPE_WRITE) {
+        if (orderTask.response.responseType == OrderTask.RESPONSE_TYPE_WRITE) {
             sendWriteOrder(orderTask, mokoCharacteristic);
         }
-        if (orderTask.responseType == OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE) {
+        if (orderTask.response.responseType == OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE) {
             sendWriteNoResponseOrder(orderTask, mokoCharacteristic);
         }
-        if (orderTask.responseType == OrderTask.RESPONSE_TYPE_NOTIFY) {
+        if (orderTask.response.responseType == OrderTask.RESPONSE_TYPE_NOTIFY) {
             sendNotifyOrder(orderTask, mokoCharacteristic);
         }
         orderTimeoutHandler(orderTask);
@@ -331,7 +331,7 @@ public class MokoSupport implements MokoResponseCallback {
     // 发送可写命令
     private void sendWriteOrder(OrderTask orderTask, final MokoCharacteristic mokoCharacteristic) {
         LogModule.i("app to device write : " + orderTask.orderType.getName());
-        LogModule.i(Utils.bytesToHexString(orderTask.assemble()));
+        LogModule.i(MokoUtils.bytesToHexString(orderTask.assemble()));
         mokoCharacteristic.characteristic.setValue(orderTask.assemble());
         mHandler.post(new Runnable() {
             @Override
@@ -344,7 +344,7 @@ public class MokoSupport implements MokoResponseCallback {
     // 发送可写无应答命令
     private void sendWriteNoResponseOrder(OrderTask orderTask, final MokoCharacteristic mokoCharacteristic) {
         LogModule.i("app to device write no response : " + orderTask.orderType.getName());
-        LogModule.i(Utils.bytesToHexString(orderTask.assemble()));
+        LogModule.i(MokoUtils.bytesToHexString(orderTask.assemble()));
         mokoCharacteristic.characteristic.setValue(orderTask.assemble());
         mokoCharacteristic.characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
         mHandler.post(new Runnable() {
@@ -374,7 +374,7 @@ public class MokoSupport implements MokoResponseCallback {
             return;
         }
         LogModule.i("app to device write no response : " + orderTask.orderType.getName());
-        LogModule.i(Utils.bytesToHexString(orderTask.assemble()));
+        LogModule.i(MokoUtils.bytesToHexString(orderTask.assemble()));
         mokoCharacteristic.characteristic.setValue(orderTask.assemble());
         mokoCharacteristic.characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
         mHandler.post(new Runnable() {
@@ -386,23 +386,22 @@ public class MokoSupport implements MokoResponseCallback {
     }
 
     private void orderTimeoutHandler(final OrderTask orderTask) {
-        long delayTime = 3000;
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 if (orderTask.orderStatus != OrderTask.ORDER_STATUS_SUCCESS) {
                     LogModule.i("应答超时");
                     mQueue.poll();
-                    orderTask.mokoOrderTaskCallback.onOrderTimeout(orderTask.orderType);
+                    orderTask.mokoOrderTaskCallback.onOrderTimeout(orderTask.response);
                     executeTask(orderTask.mokoOrderTaskCallback);
                 }
             }
-        }, delayTime);
+        }, orderTask.delayTime);
     }
 
     @Override
     public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic, byte[] value) {
-        if (!mQueue.isEmpty()) {
+        if (isSyncData()) {
             // 非延时应答
             OrderTask orderTask = mQueue.peek();
             if (value != null && value.length > 0) {
@@ -428,7 +427,7 @@ public class MokoSupport implements MokoResponseCallback {
 
     @Override
     public void onCharacteristicWrite(byte[] value) {
-        if (mQueue.isEmpty()) {
+        if (!isSyncData()) {
             return;
         }
         OrderTask orderTask = mQueue.peek();
@@ -450,7 +449,7 @@ public class MokoSupport implements MokoResponseCallback {
 
     @Override
     public void onCharacteristicRead(byte[] value) {
-        if (mQueue.isEmpty()) {
+        if (!isSyncData()) {
             return;
         }
         OrderTask orderTask = mQueue.peek();
@@ -478,7 +477,7 @@ public class MokoSupport implements MokoResponseCallback {
 
     @Override
     public void onDescriptorWrite() {
-        if (mQueue.isEmpty()) {
+        if (!isSyncData()) {
             return;
         }
         OrderTask orderTask = mQueue.peek();
@@ -490,12 +489,13 @@ public class MokoSupport implements MokoResponseCallback {
 
     private void formatCommonOrder(OrderTask task, byte[] value) {
         task.orderStatus = OrderTask.ORDER_STATUS_SUCCESS;
+        task.response.responseValue = value;
         mQueue.poll();
-        task.mokoOrderTaskCallback.onOrderResult(task.orderType, value);
+        task.mokoOrderTaskCallback.onOrderResult(task.response);
         executeTask(task.mokoOrderTaskCallback);
     }
 
-    public boolean isSyncData() {
+    public synchronized boolean isSyncData() {
         return mQueue != null && !mQueue.isEmpty();
     }
 }

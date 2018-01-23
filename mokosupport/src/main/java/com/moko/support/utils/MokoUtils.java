@@ -11,9 +11,9 @@ import java.util.List;
  * @Date 2017/12/7 0007
  * @Author wenzheng.liu
  * @Description
- * @ClassPath com.moko.support.utils.Utils
+ * @ClassPath com.moko.support.utils.MokoUtils
  */
-public class Utils {
+public class MokoUtils {
     /**
      * A - 发射端和接收端相隔1米时的信号强度
      */

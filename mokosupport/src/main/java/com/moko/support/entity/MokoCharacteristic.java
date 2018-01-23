@@ -2,7 +2,7 @@ package com.moko.support.entity;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 
-import com.moko.support.utils.Utils;
+import com.moko.support.utils.MokoUtils;
 
 import java.io.Serializable;
 
@@ -24,6 +24,6 @@ public class MokoCharacteristic implements Serializable {
     }
 
     public MokoCharacteristic(BluetoothGattCharacteristic characteristic, OrderType orderType) {
-        this(characteristic, Utils.getCharPropertie(characteristic.getProperties()), orderType);
+        this(characteristic, MokoUtils.getCharPropertie(characteristic.getProperties()), orderType);
     }
 }
