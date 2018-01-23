@@ -130,13 +130,14 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                     mMokoService.mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            mMokoService.getReadableData();
+                            mMokoService.sendOrder(mMokoService.setConfigNotify(), mMokoService.getLockState());
                         }
                     }, 1000);
                 }
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
                     dismissLoadingProgressDialog();
                     dismissVerifyProgressDialog();
+                    ToastUtils.showToast(MainActivity.this, "Disconnected");
                 }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
                 }
@@ -162,6 +163,8 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                             } else {
                                 dismissVerifyProgressDialog();
                                 LogModule.i("解锁成功");
+                                Intent deviceInfoIntent = new Intent(MainActivity.this, DeviceInfoActivity.class);
+                                startActivity(deviceInfoIntent);
                             }
                             break;
                         case unLock:
@@ -284,23 +287,23 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
     }
 
 
-    private ProgressDialog mScaningDialog;
+    private ProgressDialog mVerifyingDialog;
 
     private void showVerifyingProgressDialog() {
-        mScaningDialog = new ProgressDialog(this);
-        mScaningDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mScaningDialog.setCanceledOnTouchOutside(false);
-        mScaningDialog.setCancelable(false);
-        mScaningDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mScaningDialog.setMessage("Verifying...");
-        if (!isFinishing() && mScaningDialog != null && !mScaningDialog.isShowing()) {
-            mScaningDialog.show();
+        mVerifyingDialog = new ProgressDialog(this);
+        mVerifyingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mVerifyingDialog.setCanceledOnTouchOutside(false);
+        mVerifyingDialog.setCancelable(false);
+        mVerifyingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mVerifyingDialog.setMessage("Verifying...");
+        if (!isFinishing() && mVerifyingDialog != null && !mVerifyingDialog.isShowing()) {
+            mVerifyingDialog.show();
         }
     }
 
     private void dismissVerifyProgressDialog() {
-        if (!isFinishing() && mScaningDialog != null && mScaningDialog.isShowing()) {
-            mScaningDialog.dismiss();
+        if (!isFinishing() && mVerifyingDialog != null && mVerifyingDialog.isShowing()) {
+            mVerifyingDialog.dismiss();
         }
     }
 

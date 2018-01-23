@@ -8,4 +8,5 @@
     <string name="ok">OK</string>
     <string name="password_null">Password cannot be empty</string>
     <string name="password_length">Length should be 8 bits</string>
+    <string name="options_title">Options</string>
 </resources>

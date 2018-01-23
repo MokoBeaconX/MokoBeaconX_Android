@@ -101,10 +101,6 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     // 处理应答
     ///////////////////////////////////////////////////////////////////////////
 
-    public void getReadableData() {
-        sendOrder(setConfigNotify(), getLockState());
-    }
-
     public void sendOrder(OrderTask... orderTasks) {
         MokoSupport.getInstance().sendOrder(orderTasks);
     }
