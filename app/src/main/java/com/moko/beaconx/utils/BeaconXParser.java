@@ -7,7 +7,7 @@ import com.moko.beaconx.entity.BeaconXTLM;
 import com.moko.beaconx.entity.BeaconXUID;
 import com.moko.beaconx.entity.BeaconXURL;
 import com.moko.beaconx.entity.BeaconXiBeacon;
-import com.moko.support.utils.Utils;
+import com.moko.support.utils.MokoUtils;
 
 import java.util.HashMap;
 
@@ -57,9 +57,9 @@ public class BeaconXParser {
         String urlExpansionStr = urlExpansion.get(data.substring(data.length() - 2, data.length()));
         String urlStr;
         if (TextUtils.isEmpty(urlExpansionStr)) {
-            urlStr = urlSchemeStr + Utils.hex2String(data.substring(6, data.length()));
+            urlStr = urlSchemeStr + MokoUtils.hex2String(data.substring(6, data.length()));
         } else {
-            urlStr = urlSchemeStr + Utils.hex2String(data.substring(6, data.length() - 2)) + urlExpansionStr;
+            urlStr = urlSchemeStr + MokoUtils.hex2String(data.substring(6, data.length() - 2)) + urlExpansionStr;
         }
         url.url = urlStr;
         return url;
@@ -103,7 +103,7 @@ public class BeaconXParser {
         device.version = Integer.parseInt(data.substring(16, 18), 16) + "";
         device.isConnected = Integer.parseInt(data.substring(18, 20), 16) + "";
         device.battery = Integer.parseInt(data.substring(20, 22), 16) + "";
-        device.deviceName = Utils.hex2String(data.substring(22, data.length()));
+        device.deviceName = MokoUtils.hex2String(data.substring(22, data.length()));
         return device;
     }
 }

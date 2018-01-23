@@ -23,21 +23,30 @@ import android.widget.TextView;
 
 import com.moko.beaconx.R;
 import com.moko.beaconx.adapter.BeaconXListAdapter;
+import com.moko.beaconx.dialog.PasswordDialog;
 import com.moko.beaconx.dialog.ScanFilterDialog;
 import com.moko.beaconx.entity.BeaconXInfo;
 import com.moko.beaconx.service.MokoService;
 import com.moko.beaconx.utils.BeaconXInfoParseableImpl;
+import com.moko.beaconx.utils.ToastUtils;
+import com.moko.beaconx.utils.Utils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.callback.MokoScanDeviceCallback;
 import com.moko.support.entity.DeviceInfo;
+import com.moko.support.entity.OrderType;
 import com.moko.support.log.LogModule;
+import com.moko.support.task.OrderTask;
+import com.moko.support.task.OrderTaskResponse;
+import com.moko.support.utils.MokoUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -108,6 +117,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
     };
 
 
+    private String unLockResponse;
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
         @Override
@@ -116,17 +126,62 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                 String action = intent.getAction();
                 if (MokoConstants.ACTION_CONNECT_SUCCESS.equals(action)) {
                     dismissLoadingProgressDialog();
+                    showVerifyingProgressDialog();
+                    mMokoService.mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mMokoService.getReadableData();
+                        }
+                    }, 1000);
                 }
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
                     dismissLoadingProgressDialog();
+                    dismissVerifyProgressDialog();
                 }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
-
                 }
                 if (MokoConstants.ACTION_RESPONSE_FINISH.equals(action)) {
-
                 }
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
+                    OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
+                    OrderType orderType = response.orderType;
+                    int responseType = response.responseType;
+                    byte[] value = response.responseValue;
+                    switch (orderType) {
+                        case lockState:
+                            String valueStr = MokoUtils.bytesToHexString(value);
+                            if ("00".equals(valueStr)) {
+                                if (!TextUtils.isEmpty(unLockResponse)) {
+                                    dismissVerifyProgressDialog();
+                                    unLockResponse = "";
+                                    ToastUtils.showToast(MainActivity.this, "Password error");
+                                } else {
+                                    LogModule.i("锁定状态，获取unLock，解锁");
+                                    mMokoService.sendOrder(mMokoService.getUnLock());
+                                }
+                            } else {
+                                dismissVerifyProgressDialog();
+                                LogModule.i("解锁成功");
+                            }
+                            break;
+                        case unLock:
+                            if (responseType == OrderTask.RESPONSE_TYPE_READ) {
+                                byte[] bt1 = mPassword.getBytes();
+                                byte[] bt2 = {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
+                                byte[] bt3 = new byte[bt1.length + bt2.length];
+                                System.arraycopy(bt1, 0, bt3, 0, bt1.length);
+                                System.arraycopy(bt2, 0, bt3, bt1.length, bt2.length);
+                                byte[] unLockBytes = Utils.encrypt(value, bt3);
+                                if (unLockBytes != null) {
+                                    unLockResponse = MokoUtils.bytesToHexString(unLockBytes);
+                                    mMokoService.sendOrder(mMokoService.setUnLock(unLockBytes));
+                                }
+                            }
+                            if (responseType == OrderTask.RESPONSE_TYPE_WRITE) {
+                                mMokoService.sendOrder(mMokoService.getLockState());
+                            }
+                            break;
+                    }
                 }
                 if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
@@ -231,19 +286,19 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
 
     private ProgressDialog mScaningDialog;
 
-    private void showScaningProgressDialog() {
+    private void showVerifyingProgressDialog() {
         mScaningDialog = new ProgressDialog(this);
         mScaningDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         mScaningDialog.setCanceledOnTouchOutside(false);
         mScaningDialog.setCancelable(false);
         mScaningDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mScaningDialog.setMessage("Scaning...");
+        mScaningDialog.setMessage("Verifying...");
         if (!isFinishing() && mScaningDialog != null && !mScaningDialog.isShowing()) {
             mScaningDialog.show();
         }
     }
 
-    private void dismissScaningProgressDialog() {
+    private void dismissVerifyProgressDialog() {
         if (!isFinishing() && mScaningDialog != null && mScaningDialog.isShowing()) {
             mScaningDialog.dismiss();
         }
@@ -342,20 +397,59 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
         }
     }
 
+    private String mPassword;
+
     @Override
-    public void onConnectClick(BeaconXInfo beaconXInfo) {
+    public void onConnectClick(final BeaconXInfo beaconXInfo) {
         if (!MokoSupport.getInstance().isBluetoothOpen()) {
             // 蓝牙未打开，开启蓝牙
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
             return;
         }
-        if (beaconXInfo != null) {
-            LogModule.i("选中的设备：" + beaconXInfo.mac);
-            mMokoService.connDevice(beaconXInfo.mac);
-            showLoadingProgressDialog();
-            mMokoService.mHandler.removeMessages(0);
-            mMokoService.stopScanDevice();
+//        if (MokoSupport.getInstance().isConnDevice(this, beaconXInfo.mac)) {
+//            mMokoService.mHandler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mMokoService.getReadableData();
+//                }
+//            }, 1000);
+//            return;
+//        }
+        if (beaconXInfo != null && !isFinishing()) {
+            final PasswordDialog dialog = new PasswordDialog(this);
+            dialog.setOnPasswordClicked(new PasswordDialog.PasswordClickListener() {
+                @Override
+                public void onEnsureClicked(String password) {
+                    if (!MokoSupport.getInstance().isBluetoothOpen()) {
+                        // 蓝牙未打开，开启蓝牙
+                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
+                        return;
+                    }
+                    LogModule.i(password);
+                    mPassword = password;
+                    LogModule.i("选中的设备：" + beaconXInfo.mac);
+                    mMokoService.connDevice(beaconXInfo.mac);
+                    showLoadingProgressDialog();
+                    mMokoService.mHandler.removeMessages(0);
+                    mMokoService.stopScanDevice();
+                }
+
+                @Override
+                public void onDismiss() {
+
+                }
+            });
+            dialog.show();
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+
+                @Override
+                public void run() {
+                    dialog.showKeyboard();
+                }
+            }, 200);
         }
     }
 }

@@ -11,10 +11,13 @@ import com.moko.support.MokoSupport;
 import com.moko.support.callback.MokoConnStateCallback;
 import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.callback.MokoScanDeviceCallback;
-import com.moko.support.entity.OrderType;
 import com.moko.support.handler.BaseMessageHandler;
 import com.moko.support.log.LogModule;
+import com.moko.support.task.LockStateTask;
+import com.moko.support.task.NotifyConfigTask;
 import com.moko.support.task.OrderTask;
+import com.moko.support.task.OrderTaskResponse;
+import com.moko.support.task.UnLockTask;
 
 
 /**
@@ -99,7 +102,7 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     ///////////////////////////////////////////////////////////////////////////
 
     public void getReadableData() {
-        sendOrder();
+        sendOrder(setConfigNotify(), getLockState());
     }
 
     public void sendOrder(OrderTask... orderTasks) {
@@ -110,20 +113,50 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
         MokoSupport.getInstance().sendDirectOrder(orderTask);
     }
 
+    /**
+     * @Description 打开配置通知set config notify
+     */
+    public OrderTask setConfigNotify() {
+        NotifyConfigTask notifyConfigTask = new NotifyConfigTask(this, OrderTask.RESPONSE_TYPE_NOTIFY);
+        return notifyConfigTask;
+    }
 
+    /**
+     * @Description 获取设备锁状态get lock state
+     */
+    public OrderTask getLockState() {
+        LockStateTask lockStateTask = new LockStateTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return lockStateTask;
+    }
+
+    /**
+     * @Description 获取解锁加密内容get unlock
+     */
+    public OrderTask getUnLock() {
+        UnLockTask unLockTask = new UnLockTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return unLockTask;
+    }
+
+    /**
+     * @Description 解锁set unlock
+     */
+    public OrderTask setUnLock(byte[] unlockBytes) {
+        UnLockTask unLockTask = new UnLockTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        unLockTask.setData(unlockBytes);
+        return unLockTask;
+    }
 
     @Override
-    public void onOrderResult(OrderType orderType, byte[] value) {
+    public void onOrderResult(OrderTaskResponse response) {
         Intent intent = new Intent(MokoConstants.ACTION_RESPONSE_SUCCESS);
-        intent.putExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE, orderType);
-        intent.putExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE, value);
+        intent.putExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK, response);
         sendOrderedBroadcast(intent, null);
     }
 
     @Override
-    public void onOrderTimeout(OrderType orderType) {
+    public void onOrderTimeout(OrderTaskResponse response) {
         Intent intent = new Intent(MokoConstants.ACTION_RESPONSE_TIMEOUT);
-        intent.putExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE, orderType);
+        intent.putExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK, response);
         sendOrderedBroadcast(intent, null);
     }
 

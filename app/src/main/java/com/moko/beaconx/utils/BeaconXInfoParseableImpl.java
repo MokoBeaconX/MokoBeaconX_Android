@@ -3,7 +3,7 @@ package com.moko.beaconx.utils;
 import com.moko.beaconx.entity.BeaconXInfo;
 import com.moko.support.entity.DeviceInfo;
 import com.moko.support.service.DeviceInfoParseable;
-import com.moko.support.utils.Utils;
+import com.moko.support.utils.MokoUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
 
     @Override
     public BeaconXInfo parseDeviceInfo(DeviceInfo deviceInfo) {
-        byte[] scanRecord = Utils.hex2bytes(deviceInfo.scanRecord);
+        byte[] scanRecord = MokoUtils.hex2bytes(deviceInfo.scanRecord);
         // filter
         boolean isEddystone = false;
         boolean isBeacon = false;
@@ -44,6 +44,7 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
         BeaconXInfo beaconXInfo;
         if (beaconXInfoHashMap.containsKey(deviceInfo.mac)) {
             beaconXInfo = beaconXInfoHashMap.get(deviceInfo.mac);
+            beaconXInfo.rssi = deviceInfo.rssi;
         } else {
             beaconXInfo = new BeaconXInfo();
             beaconXInfo.name = deviceInfo.name;
@@ -55,13 +56,13 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
         }
         String data = null;
         if (isBeacon || isDeviceInfo) {
-            data = Utils.bytesToHexString(Arrays.copyOfRange(scanRecord, 7, length + 4));
+            data = MokoUtils.bytesToHexString(Arrays.copyOfRange(scanRecord, 7, length + 4));
         }
         if (isEddystone) {
-            data = Utils.bytesToHexString(Arrays.copyOfRange(scanRecord, 11, length + 8));
+            data = MokoUtils.bytesToHexString(Arrays.copyOfRange(scanRecord, 11, length + 8));
         }
         if (beaconXInfo.validDataHashMap.containsKey(data)) {
-            return null;
+            return beaconXInfo;
         } else {
             BeaconXInfo.ValidData validData = new BeaconXInfo.ValidData();
             if (isBeacon) {

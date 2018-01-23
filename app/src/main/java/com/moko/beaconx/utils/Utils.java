@@ -10,6 +10,10 @@ import android.os.Environment;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 public class Utils {
 
@@ -90,4 +94,22 @@ public class Utils {
         return "";
     }
 
+    /**
+     * @Date 2018/1/22
+     * @Author wenzheng.liu
+     * @Description 加密
+     */
+    public static byte[] encrypt(byte[] value, byte[] password) {
+        try {
+            SecretKeySpec key = new SecretKeySpec(password, "AES");// 转换为AES专用密钥
+            Cipher cipher = Cipher.getInstance("AES");// 创建密码器
+            cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化为加密模式的密码器
+            byte[] result = cipher.doFinal(value);// 加密
+            byte[] data = Arrays.copyOf(result, 16);
+            return data;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
