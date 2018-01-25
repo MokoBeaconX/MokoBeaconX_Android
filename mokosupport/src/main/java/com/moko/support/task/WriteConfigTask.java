@@ -11,6 +11,10 @@ import com.moko.support.entity.OrderType;
  */
 public class WriteConfigTask extends OrderTask {
 
+    public static final int CONFIG_TYPE_GET_SLOT = 0x61;
+    public static final int CONFIG_TYPE_GET_MAC = 0x57;
+    public static final int CONFIG_TYPE_GET_NAME = 0x59;
+    public static final int CONFIG_TYPE_GET_CONNECTABLE = 0x90;
     public byte[] data;
 
     public WriteConfigTask(MokoOrderTaskCallback callback, int responseType) {
@@ -20,5 +24,37 @@ public class WriteConfigTask extends OrderTask {
     @Override
     public byte[] assemble() {
         return data;
+    }
+
+    public void setData(int type) {
+        switch (type) {
+            case CONFIG_TYPE_GET_SLOT:
+                createGetSlot();
+                break;
+            case CONFIG_TYPE_GET_MAC:
+                createGetMac();
+                break;
+            case CONFIG_TYPE_GET_NAME:
+                createGetName();
+                break;
+            case CONFIG_TYPE_GET_CONNECTABLE:
+                createGetConnectable();
+                break;
+        }
+    }
+
+    private void createGetSlot() {
+        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_SLOT, (byte) 0x00, (byte) 0x00};
+    }
+
+    private void createGetMac() {
+        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_MAC, (byte) 0x00, (byte) 0x00};
+    }
+
+    private void createGetName() {
+        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_NAME, (byte) 0x00, (byte) 0x00};
+    }
+    private void createGetConnectable() {
+        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_CONNECTABLE, (byte) 0x00, (byte) 0x00};
     }
 }

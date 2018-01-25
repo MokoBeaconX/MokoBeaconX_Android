@@ -13,11 +13,19 @@ import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.callback.MokoScanDeviceCallback;
 import com.moko.support.handler.BaseMessageHandler;
 import com.moko.support.log.LogModule;
+import com.moko.support.task.BatteryTask;
+import com.moko.support.task.DeviceModelTask;
+import com.moko.support.task.FirmwareVersionTask;
+import com.moko.support.task.HardwareVersionTask;
 import com.moko.support.task.LockStateTask;
+import com.moko.support.task.ManufacturerTask;
 import com.moko.support.task.NotifyConfigTask;
 import com.moko.support.task.OrderTask;
 import com.moko.support.task.OrderTaskResponse;
+import com.moko.support.task.ProductDateTask;
+import com.moko.support.task.SoftwareVersionTask;
 import com.moko.support.task.UnLockTask;
+import com.moko.support.task.WriteConfigTask;
 
 
 /**
@@ -140,6 +148,98 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
         UnLockTask unLockTask = new UnLockTask(this, OrderTask.RESPONSE_TYPE_WRITE);
         unLockTask.setData(unlockBytes);
         return unLockTask;
+    }
+
+    /**
+     * @Description 获取通道类型
+     */
+    public OrderTask getSlotType() {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_SLOT);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 获取设备MAC
+     */
+    public OrderTask getDeviceMac() {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_MAC);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 获取设备名称
+     */
+    public OrderTask getDeviceName() {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_NAME);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 获取连接状态
+     */
+    public OrderTask getConnectable() {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_CONNECTABLE);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 获取制造商
+     */
+    public OrderTask getManufacturer() {
+        ManufacturerTask manufacturerTask = new ManufacturerTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return manufacturerTask;
+    }
+
+    /**
+     * @Description 获取设备型号
+     */
+    public OrderTask getDeviceModel() {
+        DeviceModelTask deviceModelTask = new DeviceModelTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return deviceModelTask;
+    }
+
+    /**
+     * @Description 获取生产日期
+     */
+    public OrderTask getProductDate() {
+        ProductDateTask productDateTask = new ProductDateTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return productDateTask;
+    }
+
+    /**
+     * @Description 获取硬件版本
+     */
+    public OrderTask getHardwareVersion() {
+        HardwareVersionTask hardwareVersionTask = new HardwareVersionTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return hardwareVersionTask;
+    }
+
+    /**
+     * @Description 获取固件版本
+     */
+    public OrderTask getFirmwareVersion() {
+        FirmwareVersionTask firmwareVersionTask = new FirmwareVersionTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return firmwareVersionTask;
+    }
+
+    /**
+     * @Description 获取软件版本
+     */
+    public OrderTask getSoftwareVersion() {
+        SoftwareVersionTask softwareVersionTask = new SoftwareVersionTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return softwareVersionTask;
+    }
+
+    /**
+     * @Description 获取电池电量
+     */
+    public OrderTask getBattery() {
+        BatteryTask batteryTask = new BatteryTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return batteryTask;
     }
 
     @Override

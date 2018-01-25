@@ -89,12 +89,12 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="40dp"
-            android:text="Running Time"
+            android:text="Manufacture Date"
             android:textColor="@color/black_333333"
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/tv_running_time"
+            android:id="@+id/tv_product_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
@@ -128,7 +128,7 @@
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/tv_product_model"
+            android:id="@+id/tv_device_model"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
@@ -230,7 +230,7 @@
             android:textSize="15sp" />
 
         <TextView
-            android:id="@+id/tv_manufacture"
+            android:id="@+id/tv_manufacturer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"

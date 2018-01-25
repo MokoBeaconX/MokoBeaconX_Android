@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:src="@drawable/ibeacon_icon" />
+            android:src="@drawable/eddystone_icon" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -35,7 +35,7 @@
             android:layout_centerVertical="true"
             android:drawablePadding="10dp"
             android:drawableRight="@drawable/arrow_right"
-            android:text="iBeacon"
+            android:text="NO DATA"
             android:textColor="@color/grey_666666"
             android:textSize="14sp" />
 
@@ -54,7 +54,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:src="@drawable/no_data_icon" />
+            android:src="@drawable/eddystone_icon" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -112,7 +112,7 @@
             android:layout_centerVertical="true"
             android:drawablePadding="10dp"
             android:drawableRight="@drawable/arrow_right"
-            android:text="URL"
+            android:text="NO DATA"
             android:textColor="@color/grey_666666"
             android:textSize="14sp" />
 
@@ -150,7 +150,7 @@
             android:layout_centerVertical="true"
             android:drawablePadding="10dp"
             android:drawableRight="@drawable/arrow_right"
-            android:text="UID"
+            android:text="NO DATA"
             android:textColor="@color/grey_666666"
             android:textSize="14sp" />
 
@@ -188,7 +188,7 @@
             android:layout_centerVertical="true"
             android:drawablePadding="10dp"
             android:drawableRight="@drawable/arrow_right"
-            android:text="TLM"
+            android:text="NO DATA"
             android:textColor="@color/grey_666666"
             android:textSize="14sp" />
 

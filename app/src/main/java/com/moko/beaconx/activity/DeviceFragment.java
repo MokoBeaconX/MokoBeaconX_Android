@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.moko.beaconx.R;
+import com.moko.support.log.LogModule;
+import com.moko.support.utils.MokoUtils;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -20,16 +22,16 @@ public class DeviceFragment extends Fragment {
     TextView tvSoc;
     @Bind(R.id.tv_mac_address)
     TextView tvMacAddress;
-    @Bind(R.id.tv_running_time)
-    TextView tvRunningTime;
-    @Bind(R.id.tv_product_model)
-    TextView tvProductModel;
+    @Bind(R.id.tv_product_date)
+    TextView tvProductDate;
+    @Bind(R.id.tv_device_model)
+    TextView tvDeviceModel;
     @Bind(R.id.tv_software_version)
     TextView tvSoftwareVersion;
     @Bind(R.id.tv_hardware_version)
     TextView tvHardwareVersion;
-    @Bind(R.id.tv_manufacture)
-    TextView tvManufacture;
+    @Bind(R.id.tv_manufacturer)
+    TextView tvManufacturer;
 
 
     public DeviceFragment() {
@@ -80,4 +82,44 @@ public class DeviceFragment extends Fragment {
         super.onDestroy();
     }
 
+    public void setDeviceMac(byte[] value) {
+        String valueStr = MokoUtils.bytesToHexString(value);
+        String mac = valueStr.substring(9, valueStr.length());
+        tvMacAddress.setText(mac);
+    }
+
+    public void setManufacturer(byte[] value) {
+        String manufacturer = MokoUtils.hex2String(MokoUtils.bytesToHexString(value));
+        tvManufacturer.setText(manufacturer);
+    }
+
+    public void setDeviceModel(byte[] value) {
+        String deviceModel = MokoUtils.hex2String(MokoUtils.bytesToHexString(value));
+        tvDeviceModel.setText(deviceModel);
+    }
+
+    public void setProductDate(byte[] value) {
+        String productDate = MokoUtils.hex2String(MokoUtils.bytesToHexString(value));
+        tvProductDate.setText(productDate);
+    }
+
+    public void setHardwareVersion(byte[] value) {
+        String hardwareVersion = MokoUtils.hex2String(MokoUtils.bytesToHexString(value));
+        tvHardwareVersion.setText(hardwareVersion);
+    }
+
+    public void setFirmwareVersion(byte[] value) {
+        String firmwareVersion = MokoUtils.hex2String(MokoUtils.bytesToHexString(value));
+        LogModule.i("固件版本：" + firmwareVersion);
+    }
+
+    public void setSoftwareVersion(byte[] value) {
+        String softwareVersion = MokoUtils.hex2String(MokoUtils.bytesToHexString(value));
+        tvSoftwareVersion.setText(softwareVersion);
+    }
+
+    public void setBattery(byte[] value) {
+        String battery = Integer.parseInt(MokoUtils.bytesToHexString(value), 16) + "%";
+        tvSoc.setText(battery);
+    }
 }

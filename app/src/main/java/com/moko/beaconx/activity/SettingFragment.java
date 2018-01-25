@@ -10,6 +10,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.moko.beaconx.R;
+import com.moko.support.utils.MokoUtils;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -83,6 +84,21 @@ public class SettingFragment extends Fragment {
                 break;
             case R.id.rl_reset_facotry:
                 break;
+        }
+    }
+
+    public void setDeviceName(byte[] value) {
+        String valueStr = MokoUtils.bytesToHexString(value);
+        String deviceName = MokoUtils.hex2String(valueStr.substring(8, valueStr.length()));
+        tvDeviceName.setText(deviceName);
+    }
+
+    public void setConnectable(byte[] value) {
+        int connectable = Integer.parseInt(MokoUtils.byte2HexString(value[4]), 16);
+        if (connectable == 1) {
+            cbConnectable.setChecked(true);
+        } else {
+            cbConnectable.setChecked(false);
         }
     }
 }

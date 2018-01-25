@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.IdRes;
 import android.support.v4.app.FragmentActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.FrameLayout;
@@ -26,6 +27,7 @@ import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.entity.OrderType;
 import com.moko.support.task.OrderTaskResponse;
+import com.moko.support.task.WriteConfigTask;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -82,6 +84,15 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 // 蓝牙未打开，开启蓝牙
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
+            } else {
+                // 获取可读数据
+                showSyncingProgressDialog();
+                mMokoService.sendOrder(mMokoService.getSlotType(), mMokoService.getDeviceMac(),
+                        mMokoService.getDeviceName(), mMokoService.getConnectable(),
+                        mMokoService.getManufacturer(), mMokoService.getDeviceModel(),
+                        mMokoService.getProductDate(), mMokoService.getHardwareVersion(),
+                        mMokoService.getFirmwareVersion(), mMokoService.getSoftwareVersion(),
+                        mMokoService.getBattery());
             }
         }
 
@@ -97,15 +108,10 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
             abortBroadcast();
             if (intent != null) {
                 String action = intent.getAction();
-                if (MokoConstants.ACTION_CONNECT_SUCCESS.equals(action)) {
-
-                }
-                if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
-
-                }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
                 }
                 if (MokoConstants.ACTION_RESPONSE_FINISH.equals(action)) {
+                    dismissSyncProgressDialog();
                 }
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
                     OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
@@ -113,13 +119,67 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                     int responseType = response.responseType;
                     byte[] value = response.responseValue;
                     switch (orderType) {
+                        case writeConfig:
+                            if (value.length >= 2) {
+                                int header = value[1] & 0xff;
+                                switch (header) {
+                                    case WriteConfigTask.CONFIG_TYPE_GET_SLOT:
+                                        if (value.length >= 9) {
+                                            slotFragment.updateSlotType(value);
+                                        }
+                                        break;
+                                    case WriteConfigTask.CONFIG_TYPE_GET_MAC:
+                                        if (value.length >= 10) {
+                                            deviceFragment.setDeviceMac(value);
+                                        }
+                                        break;
+                                    case WriteConfigTask.CONFIG_TYPE_GET_NAME:
+                                        if (value.length >= 4) {
+                                            settingFragment.setDeviceName(value);
+                                        }
+                                        break;
+                                    case WriteConfigTask.CONFIG_TYPE_GET_CONNECTABLE:
+                                        if (value.length >= 5) {
+                                            settingFragment.setConnectable(value);
+                                        }
+                                        break;
+                                }
 
+                            }
+                            break;
+                        case manufacturer:
+                            deviceFragment.setManufacturer(value);
+                            break;
+                        case deviceModel:
+                            deviceFragment.setDeviceModel(value);
+                            break;
+                        case productDate:
+                            deviceFragment.setProductDate(value);
+                            break;
+                        case hardwareVersion:
+                            deviceFragment.setHardwareVersion(value);
+                            break;
+                        case firmwareVersion:
+                            deviceFragment.setFirmwareVersion(value);
+                            break;
+                        case softwareVersion:
+                            deviceFragment.setSoftwareVersion(value);
+                            break;
+                        case battery:
+                            deviceFragment.setBattery(value);
+                            break;
                     }
+                }
+
+                if (MokoConstants.ACTION_RESPONSE_NOTIFY.equals(action)) {
+                    OrderType orderType = (OrderType) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE);
+                    byte[] value = intent.getByteArrayExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE);
                 }
                 if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
                     switch (blueState) {
                         case BluetoothAdapter.STATE_TURNING_OFF:
+                            dismissSyncProgressDialog();
                             break;
 
                     }
@@ -155,23 +215,23 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         unbindService(mServiceConnection);
     }
 
-    private ProgressDialog mVerifyingDialog;
+    private ProgressDialog syncingDialog;
 
-    private void showVerifyingProgressDialog() {
-        mVerifyingDialog = new ProgressDialog(this);
-        mVerifyingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mVerifyingDialog.setCanceledOnTouchOutside(false);
-        mVerifyingDialog.setCancelable(false);
-        mVerifyingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mVerifyingDialog.setMessage("Verifying...");
-        if (!isFinishing() && mVerifyingDialog != null && !mVerifyingDialog.isShowing()) {
-            mVerifyingDialog.show();
+    private void showSyncingProgressDialog() {
+        syncingDialog = new ProgressDialog(this);
+        syncingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        syncingDialog.setCanceledOnTouchOutside(false);
+        syncingDialog.setCancelable(false);
+        syncingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        syncingDialog.setMessage("Syncing...");
+        if (!isFinishing() && syncingDialog != null && !syncingDialog.isShowing()) {
+            syncingDialog.show();
         }
     }
 
-    private void dismissVerifyProgressDialog() {
-        if (!isFinishing() && mVerifyingDialog != null && mVerifyingDialog.isShowing()) {
-            mVerifyingDialog.dismiss();
+    private void dismissSyncProgressDialog() {
+        if (!isFinishing() && syncingDialog != null && syncingDialog.isShowing()) {
+            syncingDialog.dismiss();
         }
     }
 
@@ -179,8 +239,23 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.tv_back:
+                back();
                 break;
         }
+    }
+
+    private void back() {
+        MokoSupport.getInstance().disConnectBle();
+        finish();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            back();
+            return false;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void showSlotFragment() {

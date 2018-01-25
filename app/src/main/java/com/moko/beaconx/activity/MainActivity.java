@@ -163,6 +163,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                             } else {
                                 dismissVerifyProgressDialog();
                                 LogModule.i("解锁成功");
+                                unLockResponse = "";
                                 Intent deviceInfoIntent = new Intent(MainActivity.this, DeviceInfoActivity.class);
                                 startActivity(deviceInfoIntent);
                             }
