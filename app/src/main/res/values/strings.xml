@@ -9,4 +9,11 @@
     <string name="password_null">Password cannot be empty</string>
     <string name="password_length">Length should be 8 bits</string>
     <string name="options_title">Options</string>
+    <string-array name="slot_type">
+        <item>TLM</item>
+        <item>UID</item>
+        <item>URL</item>
+        <item>iBeacon</item>
+        <item>NO DATA</item>
+    </string-array>
 </resources>

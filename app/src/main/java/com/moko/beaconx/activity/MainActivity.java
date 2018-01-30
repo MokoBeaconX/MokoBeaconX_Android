@@ -175,6 +175,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                                 byte[] bt3 = new byte[bt1.length + bt2.length];
                                 System.arraycopy(bt1, 0, bt3, 0, bt1.length);
                                 System.arraycopy(bt2, 0, bt3, bt1.length, bt2.length);
+                                LogModule.i("密码：" + MokoUtils.bytesToHexString(bt3));
                                 byte[] unLockBytes = Utils.encrypt(value, bt3);
                                 if (unLockBytes != null) {
                                     unLockResponse = MokoUtils.bytesToHexString(unLockBytes);

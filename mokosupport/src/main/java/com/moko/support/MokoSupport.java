@@ -413,6 +413,10 @@ public class MokoSupport implements MokoResponseCallback {
             }
         } else {
             OrderType orderType = null;
+            if (characteristic.getUuid().toString().equals(OrderType.notifyConfig.getUuid())) {
+                // 写通知命令
+                orderType = OrderType.notifyConfig;
+            }
             // 延时应答
             if (orderType != null) {
                 LogModule.i(orderType.getName());

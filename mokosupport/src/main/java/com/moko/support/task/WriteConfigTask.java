@@ -1,7 +1,9 @@
 package com.moko.support.task;
 
 import com.moko.support.callback.MokoOrderTaskCallback;
+import com.moko.support.entity.ConfigKeyEnum;
 import com.moko.support.entity.OrderType;
+import com.moko.support.utils.MokoUtils;
 
 /**
  * @Date 2018/1/20
@@ -10,11 +12,6 @@ import com.moko.support.entity.OrderType;
  * @ClassPath com.moko.support.task.WriteConfigTask
  */
 public class WriteConfigTask extends OrderTask {
-
-    public static final int CONFIG_TYPE_GET_SLOT = 0x61;
-    public static final int CONFIG_TYPE_GET_MAC = 0x57;
-    public static final int CONFIG_TYPE_GET_NAME = 0x59;
-    public static final int CONFIG_TYPE_GET_CONNECTABLE = 0x90;
     public byte[] data;
 
     public WriteConfigTask(MokoOrderTaskCallback callback, int responseType) {
@@ -26,35 +23,32 @@ public class WriteConfigTask extends OrderTask {
         return data;
     }
 
-    public void setData(int type) {
-        switch (type) {
-            case CONFIG_TYPE_GET_SLOT:
-                createGetSlot();
-                break;
-            case CONFIG_TYPE_GET_MAC:
-                createGetMac();
-                break;
-            case CONFIG_TYPE_GET_NAME:
-                createGetName();
-                break;
-            case CONFIG_TYPE_GET_CONNECTABLE:
-                createGetConnectable();
+    public void setData(ConfigKeyEnum key) {
+        switch (key) {
+            case GET_SLOT_TYPE:
+            case GET_DEVICE_MAC:
+            case GET_DEVICE_NAME:
+            case GET_CONNECTABLE:
+            case GET_IBEACON_UUID:
+            case GET_IBEACON_INFO:
+                createGetConfigData(key.getConfigKey());
                 break;
         }
     }
 
-    private void createGetSlot() {
-        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_SLOT, (byte) 0x00, (byte) 0x00};
+    private void createGetConfigData(int configKey) {
+        data = new byte[]{(byte) 0xEA, (byte) configKey, (byte) 0x00, (byte) 0x00};
     }
 
-    private void createGetMac() {
-        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_MAC, (byte) 0x00, (byte) 0x00};
+    public void setiBeaconData(int major, int minor, int advTxPower) {
+        String value = "EA" + MokoUtils.int2HexString(ConfigKeyEnum.SET_IBEACON_INFO.getConfigKey()) + "0005"
+                + String.format("%04X", major) + String.format("%04X", minor) + MokoUtils.int2HexString(Math.abs(advTxPower));
+        data = MokoUtils.hex2bytes(value);
     }
 
-    private void createGetName() {
-        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_NAME, (byte) 0x00, (byte) 0x00};
-    }
-    private void createGetConnectable() {
-        data = new byte[]{(byte) 0xEA, (byte) CONFIG_TYPE_GET_CONNECTABLE, (byte) 0x00, (byte) 0x00};
+    public void setiBeaconUUID(String uuidHex) {
+        String value = "EA" + MokoUtils.int2HexString(ConfigKeyEnum.SET_IBEACON_UUID.getConfigKey()) + "0020"
+                + uuidHex;
+        data = MokoUtils.hex2bytes(value);
     }
 }

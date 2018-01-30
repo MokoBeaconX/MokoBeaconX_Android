@@ -1,6 +1,7 @@
 package com.moko.beaconx.activity;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,7 +11,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
+import com.moko.support.entity.SlotData;
+import com.moko.support.entity.SlotEnum;
+import com.moko.support.entity.SlotFrameTypeEnum;
+import com.moko.support.entity.UrlSchemeEnum;
 import com.moko.support.utils.MokoUtils;
 
 import butterknife.Bind;
@@ -51,6 +57,9 @@ public class SlotFragment extends Fragment {
     @Bind(R.id.rl_slot5)
     RelativeLayout rlSlot5;
 
+    private DeviceInfoActivity activity;
+    private SlotData slotData;
+
     public SlotFragment() {
     }
 
@@ -71,6 +80,7 @@ public class SlotFragment extends Fragment {
         Log.i(TAG, "onCreateView: ");
         View view = inflater.inflate(R.layout.fragment_slot, container, false);
         ButterKnife.bind(this, view);
+        activity = (DeviceInfoActivity) getActivity();
         return view;
     }
 
@@ -101,48 +111,208 @@ public class SlotFragment extends Fragment {
 
     @OnClick({R.id.rl_slot1, R.id.rl_slot2, R.id.rl_slot3, R.id.rl_slot4, R.id.rl_slot5})
     public void onViewClicked(View view) {
+        slotData = new SlotData();
+        SlotFrameTypeEnum frameType = (SlotFrameTypeEnum) view.getTag();
+        slotData.frameTypeEnum = frameType;
+        // NO DATA直接跳转
         switch (view.getId()) {
             case R.id.rl_slot1:
+                createData(frameType, SlotEnum.SLOT_1);
                 break;
             case R.id.rl_slot2:
+                createData(frameType, SlotEnum.SLOT_2);
                 break;
             case R.id.rl_slot3:
+                createData(frameType, SlotEnum.SLOT_3);
                 break;
             case R.id.rl_slot4:
+                createData(frameType, SlotEnum.SLOT_4);
                 break;
             case R.id.rl_slot5:
+                createData(frameType, SlotEnum.SLOT_5);
                 break;
         }
     }
 
-    public void updateSlotType(byte[] value) {
-        changeView(MokoUtils.byte2HexString(value[4]), tvSlot1, ivSlot1);
-        changeView(MokoUtils.byte2HexString(value[5]), tvSlot2, ivSlot2);
-        changeView(MokoUtils.byte2HexString(value[6]), tvSlot3, ivSlot3);
-        changeView(MokoUtils.byte2HexString(value[7]), tvSlot4, ivSlot4);
-        changeView(MokoUtils.byte2HexString(value[8]), tvSlot5, ivSlot5);
+    private void createData(SlotFrameTypeEnum frameType, SlotEnum slot) {
+        slotData.slotEnum = slot;
+        switch (frameType) {
+            case NO_DATA:
+                Intent intent = new Intent(getActivity(), SlotDataActivity.class);
+                intent.putExtra(AppConstants.EXTRA_KEY_SLOT_DATA, slotData);
+                startActivityForResult(intent, AppConstants.REQUEST_CODE_SLOT_DATA);
+                break;
+            case IBEACON:
+                getiBeaconData(slot);
+                break;
+            case TLM:
+            case URL:
+            case UID:
+                getEddystoneData(slot);
+                break;
+        }
     }
 
-    private void changeView(String type, TextView tvSlot, ImageView ivSlot) {
-        if ("00".equals(type)) {
-            tvSlot.setText("UID");
-            ivSlot.setImageResource(R.drawable.eddystone_icon);
+    private void getEddystoneData(SlotEnum slotEnum) {
+        activity.showSyncingProgressDialog();
+        activity.mMokoService.sendOrder(
+                activity.mMokoService.setSlot(slotEnum),
+                activity.mMokoService.getSlotData(),
+                activity.mMokoService.getRadioTxPower(),
+                activity.mMokoService.getAdvInterval()
+        );
+    }
+
+    private void getiBeaconData(SlotEnum slotEnum) {
+        activity.showSyncingProgressDialog();
+        activity.mMokoService.sendOrder(
+                activity.mMokoService.setSlot(slotEnum),
+                activity.mMokoService.getiBeaconUUID(),
+                activity.mMokoService.getiBeaconInfo(),
+                activity.mMokoService.getRadioTxPower(),
+                activity.mMokoService.getAdvInterval()
+        );
+    }
+
+    // eb 61 00 05 70 50 70 10 70
+    public void updateSlotType(byte[] value) {
+        changeView((int) value[4] & 0xff, tvSlot1, ivSlot1, rlSlot1);
+        changeView((int) value[5] & 0xff, tvSlot2, ivSlot2, rlSlot2);
+        changeView((int) value[6] & 0xff, tvSlot3, ivSlot3, rlSlot3);
+        changeView((int) value[7] & 0xff, tvSlot4, ivSlot4, rlSlot4);
+        changeView((int) value[8] & 0xff, tvSlot5, ivSlot5, rlSlot5);
+    }
+
+    private void changeView(int frameType, TextView tvSlot, ImageView ivSlot, RelativeLayout rlSlot) {
+        SlotFrameTypeEnum slotFrameTypeEnum = SlotFrameTypeEnum.fromFrameType(frameType);
+        if (slotFrameTypeEnum == null) {
+            return;
         }
-        if ("10".equals(type)) {
-            tvSlot.setText("UID");
-            ivSlot.setImageResource(R.drawable.eddystone_icon);
+        switch (slotFrameTypeEnum) {
+            case UID:
+                ivSlot.setImageResource(R.drawable.eddystone_icon);
+                break;
+            case URL:
+                ivSlot.setImageResource(R.drawable.eddystone_icon);
+                break;
+            case TLM:
+                ivSlot.setImageResource(R.drawable.eddystone_icon);
+                break;
+            case IBEACON:
+                ivSlot.setImageResource(R.drawable.ibeacon_icon);
+                break;
+            case NO_DATA:
+                ivSlot.setImageResource(R.drawable.no_data_icon);
+                break;
+
         }
-        if ("20".equals(type)) {
-            tvSlot.setText("TLM");
-            ivSlot.setImageResource(R.drawable.eddystone_icon);
+        tvSlot.setText(slotFrameTypeEnum.getShowName());
+        rlSlot.setTag(slotFrameTypeEnum);
+    }
+
+    private String iBeaconUUID;
+    private String major;
+    private String minor;
+    private String rssi_1m;
+    private int txPower;
+    private int advInterval;
+
+    // eb640010e2c56db5dffb48d2b060d0f5a71096e0
+    public void setiBeaconUUID(byte[] value) {
+        String valueHex = MokoUtils.bytesToHexString(value);
+        iBeaconUUID = valueHex.substring(8);
+        slotData.iBeaconUUID = iBeaconUUID;
+    }
+
+    // eb6600050000000000
+    public void setiBeaconInfo(byte[] value) {
+        String valueHex = MokoUtils.bytesToHexString(value);
+        major = valueHex.substring(8, 12);
+        minor = valueHex.substring(12, 16);
+        rssi_1m = valueHex.substring(16);
+        slotData.major = major;
+        slotData.minor = minor;
+        slotData.rssi_1m = rssi_1m;
+    }
+
+    // 00
+    public void setTxPower(byte[] value) {
+        txPower = value[0];
+        slotData.txPower = txPower;
+    }
+
+    // 0064
+    public void setAdvInterval(byte[] value) {
+        advInterval = MokoUtils.toInt(value);
+        slotData.advInterval = advInterval;
+        Intent intent = new Intent(getActivity(), SlotDataActivity.class);
+        intent.putExtra(AppConstants.EXTRA_KEY_SLOT_DATA, slotData);
+        startActivityForResult(intent, AppConstants.REQUEST_CODE_SLOT_DATA);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == getActivity().RESULT_OK) {
+            if (requestCode == AppConstants.REQUEST_CODE_SLOT_DATA) {
+                Log.i(TAG, "onActivityResult: ");
+
+            }
         }
-        if ("50".equals(type)) {
-            tvSlot.setText("iBeacon");
-            ivSlot.setImageResource(R.drawable.ibeacon_icon);
+    }
+
+    // 不同类型的数据长度不同
+    public void setSlotData(byte[] value) {
+        int frameType = value[0];
+        SlotFrameTypeEnum slotFrameTypeEnum = SlotFrameTypeEnum.fromFrameType(frameType);
+        if (slotFrameTypeEnum != null) {
+            switch (slotFrameTypeEnum) {
+                case URL:
+                    // URL：10cf014c6f766500
+                    pasrseUrlData(value);
+                    break;
+                case TLM:
+                    pasrseTlmData(value);
+                    break;
+                case UID:
+                    pasrseUidData(value);
+                    break;
+            }
         }
-        if ("70".equals(type)) {
-            tvSlot.setText("NO DATA");
-            ivSlot.setImageResource(R.drawable.no_data_icon);
+    }
+
+    private String namespace;
+    private String instanceId;
+
+    private void pasrseUidData(byte[] value) {
+        if (value.length >= 18) {
+            rssi_0m = value[1];
+            namespace = MokoUtils.bytesToHexString(value).substring(4, 24);
+            instanceId = MokoUtils.bytesToHexString(value).substring(24);
+            slotData.rssi_0m = rssi_0m;
+            slotData.namespace = namespace;
+            slotData.instanceId = instanceId;
+
+        }
+    }
+
+    private void pasrseTlmData(byte[] value) {
+
+    }
+
+    private int rssi_0m;
+    private UrlSchemeEnum urlSchemeEnum;
+    private String urlContent;
+
+    private void pasrseUrlData(byte[] value) {
+        if (value.length > 3) {
+            rssi_0m = value[1] & 0xff;
+            int urlType = (int) value[2] & 0xff;
+            this.urlSchemeEnum = UrlSchemeEnum.fromUrlType(urlType);
+            urlContent = MokoUtils.bytesToHexString(value).substring(6);
+            slotData.rssi_0m = rssi_0m;
+            slotData.urlSchemeEnum = urlSchemeEnum;
+            slotData.urlContent = urlContent;
         }
     }
 }

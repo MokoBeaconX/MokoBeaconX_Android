@@ -34,6 +34,10 @@ public class MokoUtils {
         return String.format("%02X", b);
     }
 
+    public static String int2HexString(int b) {
+        return String.format("%02X", b);
+    }
+
     public static String bytesToHexString(byte[] src) {
         StringBuilder stringBuilder = new StringBuilder("");
         if (src == null || src.length <= 0) {

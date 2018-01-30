@@ -25,9 +25,10 @@ import com.moko.beaconx.R;
 import com.moko.beaconx.service.MokoService;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
+import com.moko.support.entity.ConfigKeyEnum;
 import com.moko.support.entity.OrderType;
 import com.moko.support.task.OrderTaskResponse;
-import com.moko.support.task.WriteConfigTask;
+import com.moko.support.utils.MokoUtils;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -44,7 +45,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     RadioButton radioBtnDevice;
     @Bind(R.id.rg_options)
     RadioGroup rgOptions;
-    private MokoService mMokoService;
+    public MokoService mMokoService;
     private FragmentManager fragmentManager;
     private SlotFragment slotFragment;
     private SettingFragment settingFragment;
@@ -85,14 +86,9 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
             } else {
-                // 获取可读数据
                 showSyncingProgressDialog();
-                mMokoService.sendOrder(mMokoService.getSlotType(), mMokoService.getDeviceMac(),
-                        mMokoService.getDeviceName(), mMokoService.getConnectable(),
-                        mMokoService.getManufacturer(), mMokoService.getDeviceModel(),
-                        mMokoService.getProductDate(), mMokoService.getHardwareVersion(),
-                        mMokoService.getFirmwareVersion(), mMokoService.getSoftwareVersion(),
-                        mMokoService.getBattery());
+                getSlotType();
+                getDeviceInfo();
             }
         }
 
@@ -100,6 +96,25 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         public void onServiceDisconnected(ComponentName name) {
         }
     };
+
+    private void getSlotType() {
+        if (mMokoService == null) {
+            return;
+        }
+        mMokoService.sendOrder(mMokoService.getSlotType());
+    }
+
+    private void getDeviceInfo() {
+        if (mMokoService == null) {
+            return;
+        }
+        mMokoService.sendOrder(mMokoService.getDeviceMac(),
+                mMokoService.getDeviceName(), mMokoService.getConnectable(),
+                mMokoService.getManufacturer(), mMokoService.getDeviceModel(),
+                mMokoService.getProductDate(), mMokoService.getHardwareVersion(),
+                mMokoService.getFirmwareVersion(), mMokoService.getSoftwareVersion(),
+                mMokoService.getBattery());
+    }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
@@ -116,35 +131,47 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
                     OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
                     OrderType orderType = response.orderType;
-                    int responseType = response.responseType;
                     byte[] value = response.responseValue;
                     switch (orderType) {
                         case writeConfig:
                             if (value.length >= 2) {
-                                int header = value[1] & 0xff;
-                                switch (header) {
-                                    case WriteConfigTask.CONFIG_TYPE_GET_SLOT:
+                                int key = value[1] & 0xff;
+                                ConfigKeyEnum configKeyEnum = ConfigKeyEnum.fromConfigKey(key);
+                                if (configKeyEnum == null) {
+                                    return;
+                                }
+                                switch (configKeyEnum) {
+                                    case GET_SLOT_TYPE:
                                         if (value.length >= 9) {
                                             slotFragment.updateSlotType(value);
                                         }
                                         break;
-                                    case WriteConfigTask.CONFIG_TYPE_GET_MAC:
+                                    case GET_DEVICE_MAC:
                                         if (value.length >= 10) {
                                             deviceFragment.setDeviceMac(value);
                                         }
                                         break;
-                                    case WriteConfigTask.CONFIG_TYPE_GET_NAME:
+                                    case GET_DEVICE_NAME:
                                         if (value.length >= 4) {
                                             settingFragment.setDeviceName(value);
                                         }
                                         break;
-                                    case WriteConfigTask.CONFIG_TYPE_GET_CONNECTABLE:
+                                    case GET_CONNECTABLE:
                                         if (value.length >= 5) {
                                             settingFragment.setConnectable(value);
                                         }
                                         break;
+                                    case GET_IBEACON_UUID:
+                                        if (value.length >= 20) {
+                                            slotFragment.setiBeaconUUID(value);
+                                        }
+                                        break;
+                                    case GET_IBEACON_INFO:
+                                        if (value.length >= 9) {
+                                            slotFragment.setiBeaconInfo(value);
+                                        }
+                                        break;
                                 }
-
                             }
                             break;
                         case manufacturer:
@@ -168,12 +195,35 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                         case battery:
                             deviceFragment.setBattery(value);
                             break;
+                        case advSlotData:
+                            if (value.length >= 1) {
+                                slotFragment.setSlotData(value);
+                            }
+                            break;
+                        case radioTxPower:
+                            if (value.length >= 1) {
+                                slotFragment.setTxPower(value);
+                            }
+                            break;
+                        case advInterval:
+                            if (value.length >= 2) {
+                                slotFragment.setAdvInterval(value);
+                            }
+                            break;
                     }
                 }
 
                 if (MokoConstants.ACTION_RESPONSE_NOTIFY.equals(action)) {
                     OrderType orderType = (OrderType) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE);
                     byte[] value = intent.getByteArrayExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE);
+                    switch (orderType) {
+                        case notifyConfig:
+                            String valueHexStr = MokoUtils.bytesToHexString(value);
+                            if ("eb63000100".equals(valueHexStr.toLowerCase())) {
+                                // TODO: 2018/1/25 设备上锁
+                            }
+                            break;
+                    }
                 }
                 if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
@@ -194,7 +244,8 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case MokoConstants.REQUEST_CODE_ENABLE_BT:
-
+                    showSyncingProgressDialog();
+                    getSlotType();
                     break;
 
             }
@@ -217,7 +268,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
 
     private ProgressDialog syncingDialog;
 
-    private void showSyncingProgressDialog() {
+    public void showSyncingProgressDialog() {
         syncingDialog = new ProgressDialog(this);
         syncingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         syncingDialog.setCanceledOnTouchOutside(false);
@@ -229,7 +280,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         }
     }
 
-    private void dismissSyncProgressDialog() {
+    public void dismissSyncProgressDialog() {
         if (!isFinishing() && syncingDialog != null && syncingDialog.isShowing()) {
             syncingDialog.dismiss();
         }
@@ -290,6 +341,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         switch (checkedId) {
             case R.id.radioBtn_slot:
                 showSlotFragment();
+                getSlotType();
                 break;
             case R.id.radioBtn_setting:
                 showSettingFragment();

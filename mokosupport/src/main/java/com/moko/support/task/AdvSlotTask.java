@@ -2,6 +2,7 @@ package com.moko.support.task;
 
 import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
+import com.moko.support.entity.SlotEnum;
 
 /**
  * @Date 2018/1/20
@@ -20,5 +21,9 @@ public class AdvSlotTask extends OrderTask {
     @Override
     public byte[] assemble() {
         return data;
+    }
+
+    public void setData(SlotEnum slot) {
+        data = new byte[]{(byte) slot.getSlot()};
     }
 }

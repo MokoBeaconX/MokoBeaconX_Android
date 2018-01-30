@@ -13,17 +13,9 @@ public class AppConstants {
     public static final String SP_KEY_DEVICE_ADDRESS = "sp_key_device_address";
     // extra_key
     // 设备列表
-    public static final String EXTRA_KEY_RESPONSE_ORDER_TYPE = "EXTRA_KEY_RESPONSE_ORDER_TYPE";
-    public static final String EXTRA_KEY_RESPONSE_VALUE = "EXTRA_KEY_RESPONSE_VALUE";
-    public static final String EXTRA_KEY_DEVICE_CONFIG = "EXTRA_KEY_DEVICE_CONFIG";
-    public static final String EXTRA_KEY_TEMP_TARGET = "EXTRA_KEY_TEMP_TARGET";
-    public static final String EXTRA_KEY_TEMP_HOUR = "EXTRA_KEY_TEMP_HOUR";
-    public static final String EXTRA_KEY_TEMP_MINUTE = "EXTRA_KEY_TEMP_MINUTE";
+    public static final String EXTRA_KEY_SLOT_DATA = "EXTRA_KEY_SLOT_DATA";
     // request_code
-    public static final int REQUEST_CODE_TEMP_TARGET = 100;
-    public static final int REQUEST_CODE_TIMER = 101;
-    public static final int REQUEST_CODE_DELAY = 102;
-    public static final int REQUEST_CODE_SELECT_FIRMWARE = 103;
+    public static final int REQUEST_CODE_SLOT_DATA = 100;
 
     // result_code
     public static final int RESULT_CONN_DISCONNECTED = 2;

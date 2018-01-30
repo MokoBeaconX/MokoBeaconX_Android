@@ -21,4 +21,8 @@ public class AdvIntervalTask extends OrderTask {
     public byte[] assemble() {
         return data;
     }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
 }

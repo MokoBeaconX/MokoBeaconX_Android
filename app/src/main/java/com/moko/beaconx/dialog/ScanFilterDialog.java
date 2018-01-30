@@ -1,10 +1,8 @@
 package com.moko.beaconx.dialog;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 

@@ -11,8 +11,14 @@ import com.moko.support.MokoSupport;
 import com.moko.support.callback.MokoConnStateCallback;
 import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.callback.MokoScanDeviceCallback;
+import com.moko.support.entity.ConfigKeyEnum;
+import com.moko.support.entity.SlotEnum;
 import com.moko.support.handler.BaseMessageHandler;
 import com.moko.support.log.LogModule;
+import com.moko.support.task.AdvIntervalTask;
+import com.moko.support.task.AdvSlotDataTask;
+import com.moko.support.task.AdvSlotTask;
+import com.moko.support.task.AdvTxPowerTask;
 import com.moko.support.task.BatteryTask;
 import com.moko.support.task.DeviceModelTask;
 import com.moko.support.task.FirmwareVersionTask;
@@ -23,6 +29,7 @@ import com.moko.support.task.NotifyConfigTask;
 import com.moko.support.task.OrderTask;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.task.ProductDateTask;
+import com.moko.support.task.RadioTxPowerTask;
 import com.moko.support.task.SoftwareVersionTask;
 import com.moko.support.task.UnLockTask;
 import com.moko.support.task.WriteConfigTask;
@@ -155,7 +162,7 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
      */
     public OrderTask getSlotType() {
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
-        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_SLOT);
+        writeConfigTask.setData(ConfigKeyEnum.GET_SLOT_TYPE);
         return writeConfigTask;
     }
 
@@ -164,7 +171,7 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
      */
     public OrderTask getDeviceMac() {
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
-        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_MAC);
+        writeConfigTask.setData(ConfigKeyEnum.GET_DEVICE_MAC);
         return writeConfigTask;
     }
 
@@ -173,7 +180,7 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
      */
     public OrderTask getDeviceName() {
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
-        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_NAME);
+        writeConfigTask.setData(ConfigKeyEnum.GET_DEVICE_NAME);
         return writeConfigTask;
     }
 
@@ -182,7 +189,7 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
      */
     public OrderTask getConnectable() {
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
-        writeConfigTask.setData(WriteConfigTask.CONFIG_TYPE_GET_CONNECTABLE);
+        writeConfigTask.setData(ConfigKeyEnum.GET_CONNECTABLE);
         return writeConfigTask;
     }
 
@@ -240,6 +247,111 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     public OrderTask getBattery() {
         BatteryTask batteryTask = new BatteryTask(this, OrderTask.RESPONSE_TYPE_READ);
         return batteryTask;
+    }
+
+    /**
+     * @Description 切换通道
+     */
+    public OrderTask setSlot(SlotEnum slot) {
+        AdvSlotTask advSlotTask = new AdvSlotTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        advSlotTask.setData(slot);
+        return advSlotTask;
+    }
+
+    /**
+     * @Description 切换通道
+     */
+    public OrderTask getSlotData() {
+        AdvSlotDataTask advSlotDataTask = new AdvSlotDataTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return advSlotDataTask;
+    }
+
+    /**
+     * @Description 设置通道信息
+     */
+    public OrderTask setSlotData(byte[] data) {
+        AdvSlotDataTask advSlotDataTask = new AdvSlotDataTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        advSlotDataTask.setData(data);
+        return advSlotDataTask;
+    }
+
+    /**
+     * @Description 获取信号强度
+     */
+    public OrderTask getRadioTxPower() {
+        RadioTxPowerTask radioTxPowerTask = new RadioTxPowerTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return radioTxPowerTask;
+    }
+
+    /**
+     * @Description 设置信号强度
+     */
+    public OrderTask setRadioTxPower(byte[] data) {
+        RadioTxPowerTask radioTxPowerTask = new RadioTxPowerTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        radioTxPowerTask.setData(data);
+        return radioTxPowerTask;
+    }
+
+    /**
+     * @Description 获取广播间隔
+     */
+    public OrderTask getAdvInterval() {
+        AdvIntervalTask advIntervalTask = new AdvIntervalTask(this, OrderTask.RESPONSE_TYPE_READ);
+        return advIntervalTask;
+    }
+
+    /**
+     * @Description 设置广播间隔
+     */
+    public OrderTask setAdvInterval(byte[] data) {
+        AdvIntervalTask advIntervalTask = new AdvIntervalTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        advIntervalTask.setData(data);
+        return advIntervalTask;
+    }
+
+    /**
+     * @Description 设置广播强度
+     */
+    public OrderTask setAdvTxPower(byte[] data) {
+        AdvTxPowerTask advTxPowerTask = new AdvTxPowerTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        advTxPowerTask.setData(data);
+        return advTxPowerTask;
+    }
+
+    /**
+     * @Description 获取iBeaconUUID
+     */
+    public OrderTask getiBeaconUUID() {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setData(ConfigKeyEnum.GET_IBEACON_UUID);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 设置iBeaconUUID
+     */
+    public OrderTask setiBeaconUUID(String uuidHex) {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setiBeaconUUID(uuidHex);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 获取iBeaconInfo
+     */
+    public OrderTask getiBeaconInfo() {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setData(ConfigKeyEnum.GET_IBEACON_INFO);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 设置iBeaconInfo
+     */
+    public OrderTask setiBeaconInfo(int major, int minor, int advTxPower) {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setiBeaconData(major, minor, advTxPower);
+        return writeConfigTask;
     }
 
     @Override
