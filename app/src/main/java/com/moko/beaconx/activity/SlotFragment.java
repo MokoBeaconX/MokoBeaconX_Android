@@ -213,7 +213,7 @@ public class SlotFragment extends Fragment {
     private String iBeaconUUID;
     private String major;
     private String minor;
-    private String rssi_1m;
+    private int rssi_1m;
     private int txPower;
     private int advInterval;
 
@@ -229,10 +229,10 @@ public class SlotFragment extends Fragment {
         String valueHex = MokoUtils.bytesToHexString(value);
         major = valueHex.substring(8, 12);
         minor = valueHex.substring(12, 16);
-        rssi_1m = valueHex.substring(16);
+        rssi_1m = Integer.parseInt(valueHex.substring(16), 16);
         slotData.major = major;
         slotData.minor = minor;
-        slotData.rssi_1m = rssi_1m;
+        slotData.rssi_1m = 0 - rssi_1m;
     }
 
     // 00
@@ -243,7 +243,7 @@ public class SlotFragment extends Fragment {
 
     // 0064
     public void setAdvInterval(byte[] value) {
-        advInterval = MokoUtils.toInt(value);
+        advInterval = Integer.parseInt(MokoUtils.bytesToHexString(value), 16);
         slotData.advInterval = advInterval;
         Intent intent = new Intent(getActivity(), SlotDataActivity.class);
         intent.putExtra(AppConstants.EXTRA_KEY_SLOT_DATA, slotData);
@@ -256,7 +256,7 @@ public class SlotFragment extends Fragment {
         if (resultCode == getActivity().RESULT_OK) {
             if (requestCode == AppConstants.REQUEST_CODE_SLOT_DATA) {
                 Log.i(TAG, "onActivityResult: ");
-
+                activity.getSlotType();
             }
         }
     }
@@ -306,7 +306,7 @@ public class SlotFragment extends Fragment {
 
     private void pasrseUrlData(byte[] value) {
         if (value.length > 3) {
-            rssi_0m = value[1] & 0xff;
+            rssi_0m = value[1];
             int urlType = (int) value[2] & 0xff;
             this.urlSchemeEnum = UrlSchemeEnum.fromUrlType(urlType);
             urlContent = MokoUtils.bytesToHexString(value).substring(6);

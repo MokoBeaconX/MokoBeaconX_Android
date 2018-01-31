@@ -126,7 +126,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
                 String action = intent.getAction();
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
                     ToastUtils.showToast(SlotDataActivity.this, "Disconnected");
-                    SlotDataActivity.this.finish();
+                    finish();
                 }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
                 }
@@ -134,7 +134,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
                     ToastUtils.showToast(SlotDataActivity.this, "Successfully configure");
                     dismissSyncProgressDialog();
                     SlotDataActivity.this.setResult(SlotDataActivity.this.RESULT_OK);
-                    SlotDataActivity.this.finish();
+                    finish();
                 }
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
                     OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
@@ -155,7 +155,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
                             if ("eb63000100".equals(valueHexStr.toLowerCase())) {
                                 // 设备上锁
                                 ToastUtils.showToast(SlotDataActivity.this, "Locked");
-                                SlotDataActivity.this.finish();
+                                finish();
                             }
                             break;
                     }
@@ -176,10 +176,15 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
     };
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public void finish() {
         unregisterReceiver(mReceiver);
         unbindService(mServiceConnection);
+        super.finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private ProgressDialog syncingDialog;
@@ -209,7 +214,6 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
                 finish();
                 break;
             case R.id.iv_save:
-                showSyncingProgressDialog();
                 if (slotDataActionImpl == null) {
                     byte[] noData = new byte[]{0};
                     mMokoService.sendOrder(
@@ -222,6 +226,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
                 if (!slotDataActionImpl.isValid()) {
                     return;
                 }
+                showSyncingProgressDialog();
                 slotDataActionImpl.sendData();
                 break;
         }

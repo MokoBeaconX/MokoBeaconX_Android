@@ -98,12 +98,21 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
             etUrl.setText(MokoUtils.hex2String(url.substring(0, url.length() - 2)) + urlEnum.getUrlExpanDesc());
         }
         etUrl.setSelection(etUrl.getText().toString().length());
+
         int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
         sbAdvInterval.setProgress(advIntervalProgress);
+        advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
+        tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
+
         int advTxPowerProgress = activity.slotData.rssi_0m + 127;
         sbAdvTxPower.setProgress(advTxPowerProgress);
+        advTxPowerBytes = MokoUtils.toByteArray(activity.slotData.rssi_0m, 1);
+        tvAdvTxPower.setText(String.format("%ddBm", activity.slotData.rssi_0m));
+
         int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
         sbTxPower.setProgress(txPowerProgress);
+        txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
+        tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
     }
 
     @Override

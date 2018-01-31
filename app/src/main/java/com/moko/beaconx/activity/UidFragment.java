@@ -83,12 +83,21 @@ public class UidFragment extends Fragment implements SeekBar.OnSeekBarChangeList
         etInstanceId.setText(activity.slotData.instanceId);
         etNamespace.setSelection(etNamespace.getText().toString().length());
         etInstanceId.setSelection(etInstanceId.getText().toString().length());
+
         int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
         sbAdvInterval.setProgress(advIntervalProgress);
+        advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
+        tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
+
         int advTxPowerProgress = activity.slotData.rssi_0m + 127;
         sbAdvTxPower.setProgress(advTxPowerProgress);
+        advTxPowerBytes = MokoUtils.toByteArray(activity.slotData.rssi_0m, 1);
+        tvAdvTxPower.setText(String.format("%ddBm", activity.slotData.rssi_0m));
+
         int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
         sbTxPower.setProgress(txPowerProgress);
+        txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
+        tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
     }
 
     @Override
@@ -165,7 +174,7 @@ public class UidFragment extends Fragment implements SeekBar.OnSeekBarChangeList
             ToastUtils.showToast(activity, "Data format incorrect!");
             return false;
         }
-        if (namespace.length() == 32 || instanceId.length() == 12) {
+        if (namespace.length() != 20 || instanceId.length() != 12) {
             ToastUtils.showToast(activity, "Data format incorrect!");
             return false;
         }

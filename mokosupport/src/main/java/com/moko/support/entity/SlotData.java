@@ -10,7 +10,7 @@ public class SlotData implements Serializable {
     public String iBeaconUUID;
     public String major;
     public String minor;
-    public String rssi_1m;
+    public int rssi_1m;
     // URL
     public UrlSchemeEnum urlSchemeEnum;
     public String urlContent;

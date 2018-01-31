@@ -44,8 +44,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:digits="0123456789abcdefABCDEF"
-                android:hint="16bytes Hex"
-                android:maxLength="32"
+                android:hint="10bytes Hex"
+                android:maxLength="20"
                 android:singleLine="true"
                 android:textColor="@color/black_333333"
                 android:textSize="15sp" />

@@ -21,12 +21,14 @@ import android.widget.FrameLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
 import com.moko.beaconx.service.MokoService;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.entity.ConfigKeyEnum;
 import com.moko.support.entity.OrderType;
+import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
 
@@ -35,6 +37,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.OnCheckedChangeListener {
+
     @Bind(R.id.frame_container)
     FrameLayout frameContainer;
     @Bind(R.id.radioBtn_slot)
@@ -86,7 +89,6 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
             } else {
-                showSyncingProgressDialog();
                 getSlotType();
                 getDeviceInfo();
             }
@@ -97,10 +99,11 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         }
     };
 
-    private void getSlotType() {
+    public void getSlotType() {
         if (mMokoService == null) {
             return;
         }
+        showSyncingProgressDialog();
         mMokoService.sendOrder(mMokoService.getSlotType());
     }
 
@@ -244,10 +247,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case MokoConstants.REQUEST_CODE_ENABLE_BT:
-                    showSyncingProgressDialog();
-                    getSlotType();
                     break;
-
             }
         } else {
             switch (requestCode) {

@@ -66,10 +66,16 @@ public class TlmFragment extends Fragment implements SeekBar.OnSeekBarChangeList
             sbTxPower.setProgress(6);
             return;
         }
+
         int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
         sbAdvInterval.setProgress(advIntervalProgress);
+        advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
+        tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
+
         int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
         sbTxPower.setProgress(txPowerProgress);
+        txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
+        tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
     }
 
     @Override

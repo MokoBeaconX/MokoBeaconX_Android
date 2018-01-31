@@ -19,7 +19,6 @@ import com.moko.beaconx.able.ISlotDataAction;
 import com.moko.beaconx.utils.ToastUtils;
 import com.moko.support.entity.SlotFrameTypeEnum;
 import com.moko.support.entity.TxPowerEnum;
-import com.moko.support.log.LogModule;
 import com.moko.support.utils.MokoUtils;
 
 import java.util.regex.Pattern;
@@ -125,8 +124,6 @@ public class IBeaconFragment extends Fragment implements SeekBar.OnSeekBarChange
 
     private void setDefault() {
         if (activity.slotData.frameTypeEnum != SlotFrameTypeEnum.IBEACON) {
-            etMajor.setText("0");
-            etMinor.setText("0");
             sbAdvInterval.setProgress(9);
             sbAdvTxPower.setProgress(68);
             sbTxPower.setProgress(6);
@@ -143,12 +140,21 @@ public class IBeaconFragment extends Fragment implements SeekBar.OnSeekBarChange
         etMajor.setSelection(etMajor.getText().toString().length());
         etMinor.setSelection(etMinor.getText().toString().length());
         etUuid.setSelection(etUuid.getText().toString().length());
+
         int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
         sbAdvInterval.setProgress(advIntervalProgress);
-        int advTxPowerProgress = activity.slotData.rssi_0m + 127;
+        advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
+        tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
+
+        int advTxPowerProgress = activity.slotData.rssi_1m + 127;
         sbAdvTxPower.setProgress(advTxPowerProgress);
+        advTxPower = activity.slotData.rssi_1m;
+        tvAdvTxPower.setText(String.format("%ddBm", activity.slotData.rssi_1m));
+
         int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
         sbTxPower.setProgress(txPowerProgress);
+        txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
+        tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
     }
 
     @Override
@@ -244,6 +250,7 @@ public class IBeaconFragment extends Fragment implements SeekBar.OnSeekBarChange
                 // 切换通道，保证通道是在当前设置通道里
                 activity.mMokoService.setSlot(activity.slotData.slotEnum),
                 activity.mMokoService.setiBeaconInfo(major, minor, advTxPower),
+                activity.mMokoService.setiBeaconUUID(uuidHex),
                 activity.mMokoService.setRadioTxPower(txPowerBytes),
                 activity.mMokoService.setAdvInterval(advIntervalBytes)
         );

@@ -47,7 +47,7 @@ public class WriteConfigTask extends OrderTask {
     }
 
     public void setiBeaconUUID(String uuidHex) {
-        String value = "EA" + MokoUtils.int2HexString(ConfigKeyEnum.SET_IBEACON_UUID.getConfigKey()) + "0020"
+        String value = "EA" + MokoUtils.int2HexString(ConfigKeyEnum.SET_IBEACON_UUID.getConfigKey()) + "0010"
                 + uuidHex;
         data = MokoUtils.hex2bytes(value);
     }
