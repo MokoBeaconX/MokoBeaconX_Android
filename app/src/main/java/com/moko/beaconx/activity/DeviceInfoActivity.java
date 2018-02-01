@@ -394,26 +394,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     public void modifyPassword(String password) {
         isModifyPassword = true;
         showSyncingProgressDialog();
-        byte[] bt1 = mPassword.getBytes();
-        byte[] bt2 = {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
-        byte[] bt3 = new byte[bt1.length + bt2.length];
-        System.arraycopy(bt1, 0, bt3, 0, bt1.length);
-        System.arraycopy(bt2, 0, bt3, bt1.length, bt2.length);
-        LogModule.i("旧密码：" + MokoUtils.bytesToHexString(bt3));
-        byte[] bt4 = password.getBytes();
-        byte[] bt5 = new byte[bt4.length + bt2.length];
-        System.arraycopy(bt4, 0, bt5, 0, bt4.length);
-        System.arraycopy(bt2, 0, bt5, bt4.length, bt2.length);
-        LogModule.i("新密码：" + MokoUtils.bytesToHexString(bt5));
-        // 用旧密码加密新密码
-        byte[] unLockBytes = Utils.encrypt(bt5, bt3);
-        if (unLockBytes != null) {
-            byte[] bt6 = new byte[unLockBytes.length + 1];
-            bt6[0] = 0;
-            System.arraycopy(unLockBytes, 0, bt6, 1, unLockBytes.length);
-            mMokoService.sendOrder(mMokoService.setLockState(bt6));
-        }
-
+        mMokoService.sendOrder(mMokoService.setLockState(password));
     }
 
     public void resetDevice() {

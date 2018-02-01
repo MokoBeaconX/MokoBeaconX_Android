@@ -30,7 +30,6 @@ import com.moko.beaconx.entity.BeaconXInfo;
 import com.moko.beaconx.service.MokoService;
 import com.moko.beaconx.utils.BeaconXInfoParseableImpl;
 import com.moko.beaconx.utils.ToastUtils;
-import com.moko.beaconx.utils.Utils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.callback.MokoScanDeviceCallback;
@@ -173,17 +172,9 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                             break;
                         case unLock:
                             if (responseType == OrderTask.RESPONSE_TYPE_READ) {
-                                byte[] bt1 = mPassword.getBytes();
-                                byte[] bt2 = {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
-                                byte[] bt3 = new byte[bt1.length + bt2.length];
-                                System.arraycopy(bt1, 0, bt3, 0, bt1.length);
-                                System.arraycopy(bt2, 0, bt3, bt1.length, bt2.length);
-                                LogModule.i("密码：" + MokoUtils.bytesToHexString(bt3));
-                                byte[] unLockBytes = Utils.encrypt(value, bt3);
-                                if (unLockBytes != null) {
-                                    unLockResponse = MokoUtils.bytesToHexString(unLockBytes);
-                                    mMokoService.sendOrder(mMokoService.setUnLock(unLockBytes));
-                                }
+                                unLockResponse = MokoUtils.bytesToHexString(value);
+                                LogModule.i("返回的随机数：" + unLockResponse);
+                                mMokoService.sendOrder(mMokoService.setUnLock(mPassword, value));
                             }
                             if (responseType == OrderTask.RESPONSE_TYPE_WRITE) {
                                 mMokoService.sendOrder(mMokoService.getLockState());

@@ -6,6 +6,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.Message;
 
+import com.moko.beaconx.utils.Utils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.callback.MokoConnStateCallback;
@@ -34,6 +35,7 @@ import com.moko.support.task.ResetDeviceTask;
 import com.moko.support.task.SoftwareVersionTask;
 import com.moko.support.task.UnLockTask;
 import com.moko.support.task.WriteConfigTask;
+import com.moko.support.utils.MokoUtils;
 
 
 /**
@@ -144,10 +146,27 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     /**
      * @Description 设置设备锁状态set lock state
      */
-    public OrderTask setLockState(byte[] lockState) {
-        LockStateTask lockStateTask = new LockStateTask(this, OrderTask.RESPONSE_TYPE_WRITE);
-        lockStateTask.setData(lockState);
-        return lockStateTask;
+    public OrderTask setLockState(String newPassword) {
+        if (passwordBytes != null) {
+            LogModule.i("旧密码：" + MokoUtils.bytesToHexString(passwordBytes));
+            byte[] bt1 = newPassword.getBytes();
+            byte[] bt2 = {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
+            byte[] newPasswordBytes = new byte[bt1.length + bt2.length];
+            System.arraycopy(bt1, 0, newPasswordBytes, 0, bt1.length);
+            System.arraycopy(bt2, 0, newPasswordBytes, bt1.length, bt2.length);
+            LogModule.i("新密码：" + MokoUtils.bytesToHexString(newPasswordBytes));
+            // 用旧密码加密新密码
+            byte[] newPasswordEncryptBytes = Utils.encrypt(newPasswordBytes, passwordBytes);
+            if (newPasswordEncryptBytes != null) {
+                LockStateTask lockStateTask = new LockStateTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+                byte[] unLockBytes = new byte[newPasswordEncryptBytes.length + 1];
+                unLockBytes[0] = 0;
+                System.arraycopy(newPasswordEncryptBytes, 0, unLockBytes, 1, newPasswordEncryptBytes.length);
+                lockStateTask.setData(unLockBytes);
+                return lockStateTask;
+            }
+        }
+        return null;
     }
 
     /**
@@ -158,13 +177,25 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
         return unLockTask;
     }
 
+    private byte[] passwordBytes;
+
     /**
      * @Description 解锁set unlock
      */
-    public OrderTask setUnLock(byte[] unlockBytes) {
-        UnLockTask unLockTask = new UnLockTask(this, OrderTask.RESPONSE_TYPE_WRITE);
-        unLockTask.setData(unlockBytes);
-        return unLockTask;
+    public OrderTask setUnLock(String password, byte[] value) {
+        byte[] bt1 = password.getBytes();
+        byte[] bt2 = {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
+        passwordBytes = new byte[bt1.length + bt2.length];
+        System.arraycopy(bt1, 0, passwordBytes, 0, bt1.length);
+        System.arraycopy(bt2, 0, passwordBytes, bt1.length, bt2.length);
+        LogModule.i("密码：" + MokoUtils.bytesToHexString(passwordBytes));
+        byte[] unLockBytes = Utils.encrypt(value, passwordBytes);
+        if (unLockBytes != null) {
+            UnLockTask unLockTask = new UnLockTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+            unLockTask.setData(unLockBytes);
+            return unLockTask;
+        }
+        return null;
     }
 
     /**
