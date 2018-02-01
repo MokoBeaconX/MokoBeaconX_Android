@@ -51,4 +51,16 @@ public class WriteConfigTask extends OrderTask {
                 + uuidHex;
         data = MokoUtils.hex2bytes(value);
     }
+
+    public void setDeviceName(String deviceNameHex) {
+        String value = "EA" + MokoUtils.int2HexString(ConfigKeyEnum.SET_DEVICE_NAME.getConfigKey()) + "00"
+                + MokoUtils.int2HexString(deviceNameHex.length() / 2) + deviceNameHex;
+        data = MokoUtils.hex2bytes(value);
+    }
+
+    public void setConneactable(boolean isConnectable) {
+        String value = "EA" + MokoUtils.int2HexString(ConfigKeyEnum.SET_CONNECTABLE.getConfigKey()) + "0001"
+                + (isConnectable ? "01" : "00");
+        data = MokoUtils.hex2bytes(value);
+    }
 }

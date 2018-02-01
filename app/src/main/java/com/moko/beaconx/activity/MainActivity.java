@@ -21,6 +21,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
 import com.moko.beaconx.adapter.BeaconXListAdapter;
 import com.moko.beaconx.dialog.PasswordDialog;
@@ -155,6 +156,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                                 if (!TextUtils.isEmpty(unLockResponse)) {
                                     dismissVerifyProgressDialog();
                                     unLockResponse = "";
+                                    MokoSupport.getInstance().disConnectBle();
                                     ToastUtils.showToast(MainActivity.this, "Password error");
                                 } else {
                                     LogModule.i("锁定状态，获取unLock，解锁");
@@ -165,6 +167,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                                 LogModule.i("解锁成功");
                                 unLockResponse = "";
                                 Intent deviceInfoIntent = new Intent(MainActivity.this, DeviceInfoActivity.class);
+                                deviceInfoIntent.putExtra(AppConstants.EXTRA_KEY_PASSWORD, mPassword);
                                 startActivity(deviceInfoIntent);
                             }
                             break;

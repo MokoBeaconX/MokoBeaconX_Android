@@ -12,7 +12,6 @@
         android:layout_height="50dp">
 
         <ImageView
-            android:id="@+id/iv_device_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -50,7 +49,6 @@
         android:layout_height="50dp">
 
         <ImageView
-            android:id="@+id/iv_password"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -88,7 +86,6 @@
         android:layout_height="50dp">
 
         <ImageView
-            android:id="@+id/iv_update_firmware"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -125,7 +122,6 @@
         android:layout_height="50dp">
 
         <ImageView
-            android:id="@+id/iv_reset_facotry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -161,7 +157,7 @@
         android:layout_height="50dp">
 
         <ImageView
-            android:id="@+id/iv_connectable"
+            android:id="@+id/connectable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -176,13 +172,13 @@
             android:textColor="@color/black_333333"
             android:textSize="15sp" />
 
-        <CheckBox
-            android:id="@+id/cb_connectable"
+        <ImageView
+            android:id="@+id/iv_connectable"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:button="@drawable/selector_connectable" />
+            android:src="@drawable/connectable_unchecked" />
 
         <View
             style="@style/divider_line"

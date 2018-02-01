@@ -103,7 +103,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
             filter.addAction(MokoConstants.ACTION_RESPONSE_TIMEOUT);
             filter.addAction(MokoConstants.ACTION_RESPONSE_FINISH);
             filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-            filter.setPriority(200);
+            filter.setPriority(300);
             registerReceiver(mReceiver, filter);
             if (!MokoSupport.getInstance().isBluetoothOpen()) {
                 // 蓝牙未打开，开启蓝牙

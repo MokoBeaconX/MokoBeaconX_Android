@@ -14,6 +14,7 @@ public class AppConstants {
     // extra_key
     // 设备列表
     public static final String EXTRA_KEY_SLOT_DATA = "EXTRA_KEY_SLOT_DATA";
+    public static final String EXTRA_KEY_PASSWORD = "EXTRA_KEY_PASSWORD";
     // request_code
     public static final int REQUEST_CODE_SLOT_DATA = 100;
 

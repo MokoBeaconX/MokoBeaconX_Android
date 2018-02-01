@@ -30,6 +30,7 @@ import com.moko.support.task.OrderTask;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.task.ProductDateTask;
 import com.moko.support.task.RadioTxPowerTask;
+import com.moko.support.task.ResetDeviceTask;
 import com.moko.support.task.SoftwareVersionTask;
 import com.moko.support.task.UnLockTask;
 import com.moko.support.task.WriteConfigTask;
@@ -141,6 +142,15 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     }
 
     /**
+     * @Description 设置设备锁状态set lock state
+     */
+    public OrderTask setLockState(byte[] lockState) {
+        LockStateTask lockStateTask = new LockStateTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        lockStateTask.setData(lockState);
+        return lockStateTask;
+    }
+
+    /**
      * @Description 获取解锁加密内容get unlock
      */
     public OrderTask getUnLock() {
@@ -185,11 +195,29 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     }
 
     /**
+     * @Description 设置设备名称
+     */
+    public OrderTask setDeviceName(String deviceNameHex) {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setDeviceName(deviceNameHex);
+        return writeConfigTask;
+    }
+
+    /**
      * @Description 获取连接状态
      */
     public OrderTask getConnectable() {
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
         writeConfigTask.setData(ConfigKeyEnum.GET_CONNECTABLE);
+        return writeConfigTask;
+    }
+
+    /**
+     * @Description 获取连接状态
+     */
+    public OrderTask setConnectable(boolean isConnectable) {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setConneactable(isConnectable);
         return writeConfigTask;
     }
 
@@ -352,6 +380,14 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
         writeConfigTask.setiBeaconData(major, minor, advTxPower);
         return writeConfigTask;
+    }
+
+    /**
+     * @Description 恢复出厂设置
+     */
+    public OrderTask resetDevice() {
+        ResetDeviceTask resetDeviceTask = new ResetDeviceTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+        return resetDeviceTask;
     }
 
     @Override

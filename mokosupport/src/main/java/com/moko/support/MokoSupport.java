@@ -407,6 +407,7 @@ public class MokoSupport implements MokoResponseCallback {
             if (value != null && value.length > 0) {
                 switch (orderTask.orderType) {
                     case writeConfig:
+                    case lockState:
                         formatCommonOrder(orderTask, value);
                         break;
                 }

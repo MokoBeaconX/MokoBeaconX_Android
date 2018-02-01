@@ -24,6 +24,8 @@ import android.widget.RadioGroup;
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
 import com.moko.beaconx.service.MokoService;
+import com.moko.beaconx.utils.ToastUtils;
+import com.moko.beaconx.utils.Utils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.entity.ConfigKeyEnum;
@@ -53,12 +55,14 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     private SlotFragment slotFragment;
     private SettingFragment settingFragment;
     private DeviceFragment deviceFragment;
+    public String mPassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_info);
         ButterKnife.bind(this);
+        mPassword = getIntent().getStringExtra(AppConstants.EXTRA_KEY_PASSWORD);
         Intent intent = new Intent(this, MokoService.class);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
         fragmentManager = getFragmentManager();
@@ -82,7 +86,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
             filter.addAction(MokoConstants.ACTION_RESPONSE_TIMEOUT);
             filter.addAction(MokoConstants.ACTION_RESPONSE_FINISH);
             filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-            filter.setPriority(100);
+            filter.setPriority(200);
             registerReceiver(mReceiver, filter);
             if (!MokoSupport.getInstance().isBluetoothOpen()) {
                 // 蓝牙未打开，开启蓝牙
@@ -126,6 +130,10 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
             abortBroadcast();
             if (intent != null) {
                 String action = intent.getAction();
+                if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
+                    dismissSyncProgressDialog();
+                    back();
+                }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
                 }
                 if (MokoConstants.ACTION_RESPONSE_FINISH.equals(action)) {
@@ -174,6 +182,16 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                                             slotFragment.setiBeaconInfo(value);
                                         }
                                         break;
+                                    case SET_DEVICE_NAME:
+                                        if ("eb58000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                                            ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
+                                        }
+                                        break;
+                                    case SET_CONNECTABLE:
+                                        if ("eb62000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                                            ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
+                                        }
+                                        break;
                                 }
                             }
                             break;
@@ -213,6 +231,19 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                                 slotFragment.setAdvInterval(value);
                             }
                             break;
+                        case lockState:
+                            if ("eb63000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                                // 设备上锁
+                                if (isModifyPassword) {
+                                    isModifyPassword = false;
+                                    dismissSyncProgressDialog();
+                                    ToastUtils.showToast(DeviceInfoActivity.this, "Modify successfully!");
+                                    back();
+                                }
+                            }
+                        case resetDevice:
+                            ToastUtils.showToast(DeviceInfoActivity.this, "Reset successfully!");
+                            break;
                     }
                 }
 
@@ -223,7 +254,8 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                         case notifyConfig:
                             String valueHexStr = MokoUtils.bytesToHexString(value);
                             if ("eb63000100".equals(valueHexStr.toLowerCase())) {
-                                // TODO: 2018/1/25 设备上锁
+                                ToastUtils.showToast(DeviceInfoActivity.this, "Device Locked!");
+                                back();
                             }
                             break;
                     }
@@ -350,5 +382,48 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 showDeviceFragment();
                 break;
         }
+    }
+
+    public void setDeviceName(String deviceName) {
+        showSyncingProgressDialog();
+        mMokoService.sendOrder(mMokoService.setDeviceName(MokoUtils.string2Hex(deviceName)), mMokoService.getDeviceName());
+    }
+
+    private boolean isModifyPassword;
+
+    public void modifyPassword(String password) {
+        isModifyPassword = true;
+        showSyncingProgressDialog();
+        byte[] bt1 = mPassword.getBytes();
+        byte[] bt2 = {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
+        byte[] bt3 = new byte[bt1.length + bt2.length];
+        System.arraycopy(bt1, 0, bt3, 0, bt1.length);
+        System.arraycopy(bt2, 0, bt3, bt1.length, bt2.length);
+        LogModule.i("旧密码：" + MokoUtils.bytesToHexString(bt3));
+        byte[] bt4 = password.getBytes();
+        byte[] bt5 = new byte[bt4.length + bt2.length];
+        System.arraycopy(bt4, 0, bt5, 0, bt4.length);
+        System.arraycopy(bt2, 0, bt5, bt4.length, bt2.length);
+        LogModule.i("新密码：" + MokoUtils.bytesToHexString(bt5));
+        // 用旧密码加密新密码
+        byte[] unLockBytes = Utils.encrypt(bt5, bt3);
+        if (unLockBytes != null) {
+            byte[] bt6 = new byte[unLockBytes.length + 1];
+            bt6[0] = 0;
+            System.arraycopy(unLockBytes, 0, bt6, 1, unLockBytes.length);
+            mMokoService.sendOrder(mMokoService.setLockState(bt6));
+        }
+
+    }
+
+    public void resetDevice() {
+        showSyncingProgressDialog();
+        mMokoService.sendOrder(mMokoService.resetDevice());
+    }
+
+
+    public void setConnectable(boolean isConneacted) {
+        showSyncingProgressDialog();
+        mMokoService.sendOrder(mMokoService.setConnectable(isConneacted), mMokoService.getConnectable());
     }
 }
