@@ -386,7 +386,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
 
     public void setDeviceName(String deviceName) {
         showSyncingProgressDialog();
-        mMokoService.sendOrder(mMokoService.setDeviceName(MokoUtils.string2Hex(deviceName)), mMokoService.getDeviceName());
+        mMokoService.sendOrder(mMokoService.setDeviceName(deviceName), mMokoService.getDeviceName());
     }
 
     private boolean isModifyPassword;

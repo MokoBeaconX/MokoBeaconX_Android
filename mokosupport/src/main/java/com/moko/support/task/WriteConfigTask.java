@@ -52,7 +52,8 @@ public class WriteConfigTask extends OrderTask {
         data = MokoUtils.hex2bytes(value);
     }
 
-    public void setDeviceName(String deviceNameHex) {
+    public void setDeviceName(String deviceName) {
+        String deviceNameHex = MokoUtils.string2Hex(deviceName);
         String value = "EA" + MokoUtils.int2HexString(ConfigKeyEnum.SET_DEVICE_NAME.getConfigKey()) + "00"
                 + MokoUtils.int2HexString(deviceNameHex.length() / 2) + deviceNameHex;
         data = MokoUtils.hex2bytes(value);

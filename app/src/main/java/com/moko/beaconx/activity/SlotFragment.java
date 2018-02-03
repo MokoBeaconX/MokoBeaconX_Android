@@ -13,10 +13,10 @@ import android.widget.TextView;
 
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
+import com.moko.beaconx.utils.BeaconXParser;
 import com.moko.support.entity.SlotData;
 import com.moko.support.entity.SlotEnum;
 import com.moko.support.entity.SlotFrameTypeEnum;
-import com.moko.support.entity.UrlSchemeEnum;
 import com.moko.support.utils.MokoUtils;
 
 import butterknife.Bind;
@@ -269,50 +269,14 @@ public class SlotFragment extends Fragment {
             switch (slotFrameTypeEnum) {
                 case URL:
                     // URL：10cf014c6f766500
-                    pasrseUrlData(value);
+                    BeaconXParser.parseUrlData(slotData, value);
                     break;
                 case TLM:
-                    pasrseTlmData(value);
                     break;
                 case UID:
-                    pasrseUidData(value);
+                    BeaconXParser.parseUidData(slotData, value);
                     break;
             }
-        }
-    }
-
-    private String namespace;
-    private String instanceId;
-
-    private void pasrseUidData(byte[] value) {
-        if (value.length >= 18) {
-            rssi_0m = value[1];
-            namespace = MokoUtils.bytesToHexString(value).substring(4, 24);
-            instanceId = MokoUtils.bytesToHexString(value).substring(24);
-            slotData.rssi_0m = rssi_0m;
-            slotData.namespace = namespace;
-            slotData.instanceId = instanceId;
-
-        }
-    }
-
-    private void pasrseTlmData(byte[] value) {
-
-    }
-
-    private int rssi_0m;
-    private UrlSchemeEnum urlSchemeEnum;
-    private String urlContent;
-
-    private void pasrseUrlData(byte[] value) {
-        if (value.length > 3) {
-            rssi_0m = value[1];
-            int urlType = (int) value[2] & 0xff;
-            this.urlSchemeEnum = UrlSchemeEnum.fromUrlType(urlType);
-            urlContent = MokoUtils.bytesToHexString(value).substring(6);
-            slotData.rssi_0m = rssi_0m;
-            slotData.urlSchemeEnum = urlSchemeEnum;
-            slotData.urlContent = urlContent;
         }
     }
 }

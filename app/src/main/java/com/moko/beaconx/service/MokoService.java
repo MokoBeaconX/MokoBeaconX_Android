@@ -228,9 +228,9 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     /**
      * @Description 设置设备名称
      */
-    public OrderTask setDeviceName(String deviceNameHex) {
+    public OrderTask setDeviceName(String deviceName) {
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
-        writeConfigTask.setDeviceName(deviceNameHex);
+        writeConfigTask.setDeviceName(deviceName);
         return writeConfigTask;
     }
 
@@ -244,7 +244,7 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     }
 
     /**
-     * @Description 获取连接状态
+     * @Description 设置连接状态
      */
     public OrderTask setConnectable(boolean isConnectable) {
         WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
@@ -318,7 +318,7 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     }
 
     /**
-     * @Description 切换通道
+     * @Description 获取通道数据
      */
     public OrderTask getSlotData() {
         AdvSlotDataTask advSlotDataTask = new AdvSlotDataTask(this, OrderTask.RESPONSE_TYPE_READ);
