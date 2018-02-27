@@ -13,7 +13,7 @@ public enum ConfigKeyEnum implements Serializable {
     GET_IBEACON_INFO(0x66),
     SET_IBEACON_INFO(0x67),
     GET_CONNECTABLE(0x90),
-    SET_CONNECTABLE(0x62);
+    SET_CONNECTABLE(0x89);
 
     private int configKey;
 
