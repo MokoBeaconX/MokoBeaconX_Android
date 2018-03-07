@@ -45,6 +45,7 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
         if (beaconXInfoHashMap.containsKey(deviceInfo.mac)) {
             beaconXInfo = beaconXInfoHashMap.get(deviceInfo.mac);
             beaconXInfo.rssi = deviceInfo.rssi;
+            beaconXInfo.scanRecord = deviceInfo.scanRecord;
         } else {
             beaconXInfo = new BeaconXInfo();
             beaconXInfo.name = deviceInfo.name;

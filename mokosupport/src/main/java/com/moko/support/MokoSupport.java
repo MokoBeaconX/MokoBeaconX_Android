@@ -34,6 +34,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
+import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
 /**
  * @Date 2017/12/7 0007
@@ -174,8 +175,11 @@ public class MokoSupport implements MokoResponseCallback {
     public void startScanDevice(MokoScanDeviceCallback mokoScanDeviceCallback) {
         LogModule.i("开始扫描Beacon");
         final BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+        ScanSettings settings = new ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .build();
         mMokoLeScanHandler = new MokoLeScanHandler(mokoScanDeviceCallback);
-        scanner.startScan(mMokoLeScanHandler);
+        scanner.startScan(null, settings, mMokoLeScanHandler);
         mMokoScanDeviceCallback = mokoScanDeviceCallback;
         mokoScanDeviceCallback.onStartScan();
     }
