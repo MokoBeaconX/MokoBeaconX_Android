@@ -244,7 +244,7 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
                 urlContentHex = MokoUtils.string2Hex(urlContent);
             } else {
                 String content = urlContent.substring(0, urlContent.lastIndexOf("."));
-                if (content.length() > 16) {
+                if (content.length() < 1 || content.length() > 16) {
                     ToastUtils.showToast(activity, "Data format incorrect!");
                     return false;
                 }
