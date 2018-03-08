@@ -45,7 +45,7 @@ public class ModifyPasswordDialog extends BaseDialog {
                 String newPassword = etNewPassword.getText().toString();
                 String newPasswordRe = etNewPasswordRe.getText().toString();
                 if (TextUtils.isEmpty(newPassword)) {
-                    ToastUtils.showToast(getContext(), getContext().getString(R.string.device_name_null));
+                    ToastUtils.showToast(getContext(), getContext().getString(R.string.password_length));
                     return;
                 }
                 if (newPassword.length() != 8) {
@@ -53,7 +53,7 @@ public class ModifyPasswordDialog extends BaseDialog {
                     return;
                 }
                 if (TextUtils.isEmpty(newPasswordRe)) {
-                    ToastUtils.showToast(getContext(), getContext().getString(R.string.device_name_null));
+                    ToastUtils.showToast(getContext(), "The two passwords differ.");
                     return;
                 }
                 if (newPasswordRe.length() != 8) {
