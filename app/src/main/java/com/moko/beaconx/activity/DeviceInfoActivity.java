@@ -20,17 +20,16 @@ import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
 import com.moko.beaconx.service.MokoService;
 import com.moko.beaconx.utils.ToastUtils;
-import com.moko.beaconx.utils.Utils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.entity.ConfigKeyEnum;
 import com.moko.support.entity.OrderType;
-import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
 
@@ -51,6 +50,8 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     @Bind(R.id.rg_options)
     RadioGroup rgOptions;
     public MokoService mMokoService;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
     private FragmentManager fragmentManager;
     private SlotFragment slotFragment;
     private SettingFragment settingFragment;
@@ -348,6 +349,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         } else {
             fragmentManager.beginTransaction().hide(settingFragment).hide(deviceFragment).show(slotFragment).commit();
         }
+        tvTitle.setText(getString(R.string.options_title));
     }
 
     private void showSettingFragment() {
@@ -357,6 +359,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         } else {
             fragmentManager.beginTransaction().hide(slotFragment).hide(deviceFragment).show(settingFragment).commit();
         }
+        tvTitle.setText(getString(R.string.setting_title));
     }
 
     private void showDeviceFragment() {
@@ -366,6 +369,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         } else {
             fragmentManager.beginTransaction().hide(slotFragment).hide(settingFragment).show(deviceFragment).commit();
         }
+        tvTitle.setText(getString(R.string.device_title));
     }
 
     @Override

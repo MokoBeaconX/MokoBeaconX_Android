@@ -10,6 +10,8 @@
     <string name="device_name_null">The device name cannot be empty!</string>
     <string name="password_length">Length should be 8 bits</string>
     <string name="options_title">Options</string>
+    <string name="setting_title">Setting</string>
+    <string name="device_title">Device info</string>
     <string-array name="slot_type">
         <item>TLM</item>
         <item>UID</item>
