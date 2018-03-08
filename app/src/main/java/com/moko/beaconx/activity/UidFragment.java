@@ -16,7 +16,6 @@ import com.moko.beaconx.able.ISlotDataAction;
 import com.moko.beaconx.utils.ToastUtils;
 import com.moko.support.entity.SlotFrameTypeEnum;
 import com.moko.support.entity.TxPowerEnum;
-import com.moko.support.log.LogModule;
 import com.moko.support.utils.MokoUtils;
 
 import butterknife.Bind;
@@ -73,31 +72,32 @@ public class UidFragment extends Fragment implements SeekBar.OnSeekBarChangeList
     }
 
     private void setValue() {
-        if (activity.slotData.frameTypeEnum != SlotFrameTypeEnum.UID) {
+        if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.NO_DATA) {
             sbAdvInterval.setProgress(9);
-            sbAdvTxPower.setProgress(127);
-            sbTxPower.setProgress(6);
-            return;
+            sbAdvTxPower.setProgress(118);
+            sbTxPower.setProgress(5);
+        } else {
+            int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
+            sbAdvInterval.setProgress(advIntervalProgress);
+            advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
+            tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
+
+            int advTxPowerProgress = activity.slotData.rssi_0m + 127;
+            sbAdvTxPower.setProgress(advTxPowerProgress);
+            advTxPowerBytes = MokoUtils.toByteArray(activity.slotData.rssi_0m, 1);
+            tvAdvTxPower.setText(String.format("%ddBm", activity.slotData.rssi_0m));
+
+            int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
+            sbTxPower.setProgress(txPowerProgress);
+            txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
+            tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
         }
-        etNamespace.setText(activity.slotData.namespace);
-        etInstanceId.setText(activity.slotData.instanceId);
-        etNamespace.setSelection(etNamespace.getText().toString().length());
-        etInstanceId.setSelection(etInstanceId.getText().toString().length());
-
-        int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
-        sbAdvInterval.setProgress(advIntervalProgress);
-        advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
-        tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
-
-        int advTxPowerProgress = activity.slotData.rssi_0m + 127;
-        sbAdvTxPower.setProgress(advTxPowerProgress);
-        advTxPowerBytes = MokoUtils.toByteArray(activity.slotData.rssi_0m, 1);
-        tvAdvTxPower.setText(String.format("%ddBm", activity.slotData.rssi_0m));
-
-        int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
-        sbTxPower.setProgress(txPowerProgress);
-        txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
-        tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
+        if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.UID) {
+            etNamespace.setText(activity.slotData.namespace);
+            etInstanceId.setText(activity.slotData.instanceId);
+            etNamespace.setSelection(etNamespace.getText().toString().length());
+            etInstanceId.setSelection(etInstanceId.getText().toString().length());
+        }
     }
 
     @Override
@@ -131,25 +131,47 @@ public class UidFragment extends Fragment implements SeekBar.OnSeekBarChangeList
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        switch (seekBar.getId()) {
+        if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.UID) {
+            upgdateData(seekBar.getId(), progress);
+            activity.onProgressChanged(seekBar.getId(), progress);
+        }
+        if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.NO_DATA) {
+            upgdateData(seekBar.getId(), progress);
+        }
+    }
+
+    public void upgdateData(int viewId, int progress) {
+        switch (viewId) {
             case R.id.sb_adv_interval:
                 int advInterval = (progress + 1) * 100;
-//                LogModule.i("advInterval:" + advInterval);
                 tvAdvInterval.setText(String.format("%dms", advInterval));
                 advIntervalBytes = MokoUtils.toByteArray(advInterval, 2);
                 break;
             case R.id.sb_adv_tx_power:
                 int advTxPower = progress - 127;
-//                LogModule.i("advTxPower:" + advTxPower);
                 tvAdvTxPower.setText(String.format("%ddBm", advTxPower));
                 advTxPowerBytes = MokoUtils.toByteArray(advTxPower, 1);
                 break;
             case R.id.sb_tx_power:
                 TxPowerEnum txPowerEnum = TxPowerEnum.fromOrdinal(progress);
                 int txPower = txPowerEnum.getTxPower();
-//                LogModule.i("txPower:" + txPower);
                 tvTxPower.setText(String.format("%ddBm", txPower));
                 txPowerBytes = MokoUtils.toByteArray(txPower, 1);
+                break;
+        }
+    }
+
+    @Override
+    public void upgdateProgress(int viewId, int progress) {
+        switch (viewId) {
+            case R.id.sb_adv_interval:
+                sbAdvInterval.setProgress(progress);
+                break;
+            case R.id.sb_adv_tx_power:
+                sbAdvTxPower.setProgress(progress);
+                break;
+            case R.id.sb_tx_power:
+                sbTxPower.setProgress(progress);
                 break;
         }
     }

@@ -85,7 +85,7 @@ public class DeviceFragment extends Fragment {
     public void setDeviceMac(byte[] value) {
         String valueStr = MokoUtils.bytesToHexString(value);
         String mac = valueStr.substring(8, valueStr.length()).toUpperCase();
-        String macShow = String.format("%s:%s:%s:%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 8), mac.substring(8, 10), mac.substring(10, 12));
+        String macShow = String.format("%s:%s:%s:%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 6), mac.substring(6, 8), mac.substring(8, 10), mac.substring(10, 12));
         tvMacAddress.setText(macShow);
     }
 

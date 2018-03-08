@@ -61,21 +61,20 @@ public class TlmFragment extends Fragment implements SeekBar.OnSeekBarChangeList
     }
 
     private void setValue() {
-        if (activity.slotData.frameTypeEnum != SlotFrameTypeEnum.TLM) {
+        if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.NO_DATA) {
             sbAdvInterval.setProgress(9);
-            sbTxPower.setProgress(6);
-            return;
+            sbTxPower.setProgress(5);
+        } else {
+            int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
+            sbAdvInterval.setProgress(advIntervalProgress);
+//            advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
+//            tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
+
+            int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
+            sbTxPower.setProgress(txPowerProgress);
+//            txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
+//            tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
         }
-
-        int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
-        sbAdvInterval.setProgress(advIntervalProgress);
-        advIntervalBytes = MokoUtils.toByteArray(activity.slotData.advInterval, 2);
-        tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
-
-        int txPowerProgress = TxPowerEnum.fromTxPower(activity.slotData.txPower).ordinal();
-        sbTxPower.setProgress(txPowerProgress);
-        txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
-        tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
     }
 
     @Override
@@ -108,19 +107,39 @@ public class TlmFragment extends Fragment implements SeekBar.OnSeekBarChangeList
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        switch (seekBar.getId()) {
+        if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.TLM) {
+            upgdateData(seekBar.getId(), progress);
+            activity.onProgressChanged(seekBar.getId(), progress);
+        }
+        if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.NO_DATA) {
+            upgdateData(seekBar.getId(), progress);
+        }
+    }
+
+    private void upgdateData(int viewId, int progress) {
+        switch (viewId) {
             case R.id.sb_adv_interval:
                 int advInterval = (progress + 1) * 100;
-//                LogModule.i("advInterval:" + advInterval);
                 tvAdvInterval.setText(String.format("%dms", advInterval));
                 advIntervalBytes = MokoUtils.toByteArray(advInterval, 2);
                 break;
             case R.id.sb_tx_power:
                 TxPowerEnum txPowerEnum = TxPowerEnum.fromOrdinal(progress);
                 int txPower = txPowerEnum.getTxPower();
-//                LogModule.i("txPower:" + txPower);
                 tvTxPower.setText(String.format("%ddBm", txPower));
                 txPowerBytes = MokoUtils.toByteArray(txPower, 1);
+                break;
+        }
+    }
+
+    @Override
+    public void upgdateProgress(int viewId, int progress) {
+        switch (viewId) {
+            case R.id.sb_adv_interval:
+                sbAdvInterval.setProgress(progress);
+                break;
+            case R.id.sb_tx_power:
+                sbTxPower.setProgress(progress);
                 break;
         }
     }

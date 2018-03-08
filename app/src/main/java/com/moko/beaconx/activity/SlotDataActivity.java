@@ -33,6 +33,8 @@ import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
 
+import java.util.HashMap;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -55,6 +57,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
     private IBeaconFragment iBeaconFragment;
     public SlotData slotData;
     private ISlotDataAction slotDataActionImpl;
+    private HashMap<Integer, Integer> seekBarProgressHashMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +78,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
         npvSlotType.setValue(slotData.frameTypeEnum.ordinal());
         tvSlotTitle.setText(slotData.slotEnum.getTitle());
         showFragment(slotData.frameTypeEnum.ordinal());
+        seekBarProgressHashMap = new HashMap<>();
     }
 
     private void createFragments() {
@@ -237,6 +241,11 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
         LogModule.i(newVal + "");
         LogModule.i(picker.getContentByCurrValue());
         showFragment(newVal);
+        if (!seekBarProgressHashMap.isEmpty() && slotDataActionImpl != null) {
+            for (int key : seekBarProgressHashMap.keySet()) {
+                slotDataActionImpl.upgdateProgress(key, seekBarProgressHashMap.get(key));
+            }
+        }
     }
 
     private void showFragment(int newVal) {
@@ -265,5 +274,10 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
 
         }
         slotData.frameTypeEnum = SlotFrameTypeEnum.fromEnumOrdinal(newVal);
+    }
+
+
+    public void onProgressChanged(int viewId, int progress) {
+        seekBarProgressHashMap.put(viewId, progress);
     }
 }
