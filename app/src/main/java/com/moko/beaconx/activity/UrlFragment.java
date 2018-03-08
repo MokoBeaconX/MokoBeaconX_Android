@@ -232,7 +232,7 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
             return false;
         }
         String urlContentHex;
-        if (urlContent.indexOf(".") > 0) {
+        if (urlContent.indexOf(".") >= 0) {
             String urlExpansion = urlContent.substring(urlContent.lastIndexOf("."));
             UrlExpansionEnum urlExpansionEnum = UrlExpansionEnum.fromUrlExpanDesc(urlExpansion);
             if (urlExpansionEnum == null) {
