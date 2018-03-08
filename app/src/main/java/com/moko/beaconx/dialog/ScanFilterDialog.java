@@ -1,6 +1,7 @@
 package com.moko.beaconx.dialog;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -26,6 +27,7 @@ public class ScanFilterDialog extends BaseDialog {
     SeekBar sbRssi;
 
     private int filterRssi = -127;
+    private String filterName;
 
     public ScanFilterDialog(Context context) {
         super(context);
@@ -38,7 +40,6 @@ public class ScanFilterDialog extends BaseDialog {
 
     @Override
     protected void renderConvertView(View convertView, Object o) {
-        tvRssi.setText(String.format("%sdBm", -127 + ""));
         sbRssi.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -57,6 +58,11 @@ public class ScanFilterDialog extends BaseDialog {
 
             }
         });
+        sbRssi.setProgress(filterRssi + 127);
+        if (!TextUtils.isEmpty(filterName)) {
+            etFilterName.setText(filterName);
+            etFilterName.setSelection(filterName.length());
+        }
     }
 
     @OnClick({R.id.iv_filter_delete, R.id.tv_done})
@@ -76,6 +82,14 @@ public class ScanFilterDialog extends BaseDialog {
 
     public void setOnScanFilterListener(OnScanFilterListener listener) {
         this.listener = listener;
+    }
+
+    public void setFilterName(String filterName) {
+        this.filterName = filterName;
+    }
+
+    public void setFilterRssi(int filterRssi) {
+        this.filterRssi = filterRssi;
     }
 
     public interface OnScanFilterListener {

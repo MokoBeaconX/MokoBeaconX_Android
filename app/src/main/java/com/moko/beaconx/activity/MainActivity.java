@@ -327,7 +327,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
     public String filterName;
     public int filterRssi = -127;
 
-    @OnClick({R.id.iv_refresh, R.id.iv_about, R.id.rl_edit_filter, R.id.rl_filter})
+    @OnClick({R.id.iv_refresh, R.id.iv_about, R.id.rl_edit_filter, R.id.rl_filter,R.id.iv_filter_delete})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.iv_refresh:
@@ -358,7 +358,10 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                 startActivity(new Intent(this, AboutActivity.class));
                 break;
             case R.id.rl_edit_filter:
+            case R.id.rl_filter:
                 ScanFilterDialog scanFilterDialog = new ScanFilterDialog(this);
+                scanFilterDialog.setFilterName(filterName);
+                scanFilterDialog.setFilterRssi(filterRssi);
                 scanFilterDialog.setOnScanFilterListener(new ScanFilterDialog.OnScanFilterListener() {
                     @Override
                     public void onDone(String filterName, int filterRssi) {
@@ -386,7 +389,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                 });
                 scanFilterDialog.show();
                 break;
-            case R.id.rl_filter:
+            case R.id.iv_filter_delete:
                 rl_filter.setVisibility(View.GONE);
                 rl_edit_filter.setVisibility(View.VISIBLE);
                 filterName = "";

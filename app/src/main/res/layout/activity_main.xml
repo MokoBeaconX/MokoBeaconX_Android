@@ -75,7 +75,6 @@
         android:layout_marginTop="10dp"
         android:background="@drawable/shape_radius_white_bg"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp"
         android:visibility="gone">
 
         <TextView
@@ -88,9 +87,12 @@
             android:textSize="16sp" />
 
         <ImageView
+            android:id="@+id/iv_filter_delete"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
             android:src="@drawable/filter_delete" />
 
     </RelativeLayout>
