@@ -87,8 +87,6 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
             }
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_INFO) {
                 BeaconXDevice beaconXDevice = BeaconXParser.getDevice(validData.data);
-                device.name = beaconXDevice.deviceName;
-                holder.tvName.setText(TextUtils.isEmpty(device.name) ? "N/A" : device.name);
                 int battery = Integer.parseInt(beaconXDevice.battery);
                 if (battery >= 0 && battery <= 20) {
                     holder.ivBattery.setImageResource(R.drawable.battery_5);

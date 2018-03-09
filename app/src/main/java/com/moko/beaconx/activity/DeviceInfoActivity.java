@@ -1,12 +1,14 @@
 package com.moko.beaconx.activity;
 
 
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -128,12 +130,24 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            abortBroadcast();
+
             if (intent != null) {
                 String action = intent.getAction();
+                if (!BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                    abortBroadcast();
+                }
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
                     dismissSyncProgressDialog();
-                    back();
+                    AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
+                    builder.setTitle("Dismiss");
+                    builder.setMessage("The device disconnected!");
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            back();
+                        }
+                    });
+                    builder.show();
                 }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
                 }
@@ -330,6 +344,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
 
     private void back() {
         MokoSupport.getInstance().disConnectBle();
+        setResult(RESULT_OK);
         finish();
     }
 

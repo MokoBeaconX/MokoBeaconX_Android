@@ -66,11 +66,13 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
             return beaconXInfo;
         } else {
             BeaconXInfo.ValidData validData = new BeaconXInfo.ValidData();
+            validData.data = data;
             if (isBeacon) {
                 validData.type = BeaconXInfo.VALID_DATA_FRAME_TYPE_IBEACON;
             }
             if (isDeviceInfo) {
                 validData.type = BeaconXInfo.VALID_DATA_FRAME_TYPE_INFO;
+                beaconXInfo.name = MokoUtils.hex2String(data.substring(22, data.length()));
             }
             if (isEddystone) {
                 String frameType = data.substring(0, 2);
@@ -83,12 +85,10 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
                 } else if ("20".equals(frameType)) {
                     // TLM（only one）
                     validData.type = BeaconXInfo.VALID_DATA_FRAME_TYPE_TLM;
-                    validData.data = data;
                     beaconXInfo.validDataHashMap.put(frameType, validData);
                     return beaconXInfo;
                 }
             }
-            validData.data = data;
             beaconXInfo.validDataHashMap.put(data, validData);
         }
         return beaconXInfo;

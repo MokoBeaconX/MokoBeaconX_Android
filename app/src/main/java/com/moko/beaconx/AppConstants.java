@@ -17,6 +17,7 @@ public class AppConstants {
     public static final String EXTRA_KEY_PASSWORD = "EXTRA_KEY_PASSWORD";
     // request_code
     public static final int REQUEST_CODE_SLOT_DATA = 100;
+    public static final int REQUEST_CODE_DEVICE_INFO = 0x10;
 
     // result_code
     public static final int RESULT_CONN_DISCONNECTED = 2;

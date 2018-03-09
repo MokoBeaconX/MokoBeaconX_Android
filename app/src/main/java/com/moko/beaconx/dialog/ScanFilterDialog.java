@@ -26,7 +26,7 @@ public class ScanFilterDialog extends BaseDialog {
     @Bind(R.id.sb_rssi)
     SeekBar sbRssi;
 
-    private int filterRssi = -127;
+    private int filterRssi;
     private String filterName;
 
     public ScanFilterDialog(Context context) {
@@ -40,6 +40,7 @@ public class ScanFilterDialog extends BaseDialog {
 
     @Override
     protected void renderConvertView(View convertView, Object o) {
+        tvRssi.setText(String.format("%sdBm", filterRssi + ""));
         sbRssi.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
