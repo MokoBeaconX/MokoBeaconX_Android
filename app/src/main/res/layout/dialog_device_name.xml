@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Tips:The device name can only be letters,numbers and underscores,and up to characters."
+            android:text="Tips:The device name can only be letters,numbers and underscores,and up to 8 characters."
             android:textSize="12sp" />
 
         <EditText

@@ -138,6 +138,10 @@ public class IBeaconFragment extends Fragment implements SeekBar.OnSeekBarChange
                 sbAdvTxPower.setProgress(advTxPowerProgress);
                 advTxPower = activity.slotData.rssi_1m;
                 tvAdvTxPower.setText(String.format("%ddBm", activity.slotData.rssi_1m));
+            } else if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.TLM) {
+                sbAdvTxPower.setProgress(68);
+                advTxPower = -59;
+                tvAdvTxPower.setText(String.format("%ddBm", -59));
             } else {
                 int advTxPowerProgress = activity.slotData.rssi_0m + 127;
                 sbAdvTxPower.setProgress(advTxPowerProgress);

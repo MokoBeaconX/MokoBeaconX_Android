@@ -56,7 +56,7 @@ public class BeaconXParser {
         String temp2 = Integer.parseInt(data.substring(10, 12), 16) + "";
         tlm.temp = String.format("%s.%s°C", temp1, temp2);
         tlm.adv_cnt = Integer.parseInt(data.substring(12, 20), 16) + "";
-        int seconds = Integer.parseInt(data.substring(20, 28), 16);
+        int seconds = Integer.parseInt(data.substring(20, 28), 16) / 10;
         int day = 0, hours = 0, minutes = 0;
         day = seconds / (60 * 60 * 24);
         seconds -= day * 60 * 60 * 24;

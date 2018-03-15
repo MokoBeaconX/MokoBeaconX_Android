@@ -47,7 +47,7 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
 
     private void setView(DeviceViewHolder holder, final BeaconXInfo device) {
         holder.tvName.setText(TextUtils.isEmpty(device.name) ? "N/A" : device.name);
-        holder.tvMac.setText(device.mac);
+        holder.tvMac.setText("MAC:" + device.mac);
         holder.tvRssi.setText(device.rssi + "");
         holder.tvConnect.setOnClickListener(new View.OnClickListener() {
             @Override
