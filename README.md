@@ -133,9 +133,10 @@ At present, all the tasks sent from the SDK can be divided into 4 types:
 
 Encapsulated tasks are as follows:
 
-Task Class|Task Type|Function
-----|----|----|----
-`NotifyConfigTask`|NOTIFY|Enable notification property
+
+| Task Class | Task Type | Function |
+| ---------- | --------- | ---- | ---- |
+| `NotifyConfigTask` | NOTIFY | Enable notification property |
 
 
 Custom device information
