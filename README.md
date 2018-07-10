@@ -133,191 +133,54 @@ At present, all the tasks sent from the SDK can be divided into 4 types:
 
 Encapsulated tasks are as follows:
 
-<table>
-<thead>
-<tr>
-<th>Task Class</th>
-<th>Task Type</th>
-<th>Function</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td>NotifyConfigTask</td>
-<td>NOTIFY</td>
-<td>Enable notification property</td>
-</tr>
-</tbody>
-</table>
+|Task Class|Task Type|Function
+|----|----|----
+|`NotifyConfigTask`|NOTIFY|Enable notification property
 
 
 Custom device information
 --
 
-<table>
-<thead>
-<tr>
-<th>Task Class</th>
-<th>Task Type</th>
-<th>Function</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td><code>LockStateTask</code></td>
-<td>READ</td>
-<td>Get Lock State; <strong>0x00</strong> stands for LOCKED and needs to be unlocked; <strong>0x01</strong> stands for UNLOCKED; <strong>0x02</strong> stands for Uulocked and automatic relock disabled.</td>
-</tr>
-<tr>
-<td><code>LockStateTask</code></td>
-<td>WRITE</td>
-<td>Set new password; AES encryption of 16 byte new password with 16 byte old password ( To prevent the new password from being broadcast in the clear, the client shall AES-128-ECB encrypt the new password with the existing password. The BeaconX shall perform the decryption with its existing password and set that value as the new password. ).</td>
-</tr>
-<tr>
-<td><code>UnLockTask</code></td>
-<td>READ</td>
-<td>Get a 128-bit challenge token. This token is for one-time use and cannot be replayed.To securely unlock the BeaconX, the host must write a one-time use unlock_token into the characteristic. To create the unlock_token, it first reads the randomly generated 16-byte challenge and generates it using AES-128-ECB.encrypt (key=password[16], text=challenge[16]).</td>
-</tr>
-<tr>
-<td><code>UnLockTask</code></td>
-<td>WRITE</td>
-<td>Unlock，If the result of this calculation matches the unlock_token written to the characteristic, the beacon is unlocked. Sets the LOCK STATE to 0x01 on success.</td>
-</tr>
-<tr>
-<td><code>ManufacturerTask</code></td>
-<td>READ</td>
-<td>Get manufacturer.</td>
-</tr>
-<tr>
-<td><code>DeviceModelTask</code></td>
-<td>READ</td>
-<td>Get product model.</td>
-</tr>
-<tr>
-<td><code>ProductDateTask</code></td>
-<td>READ</td>
-<td>Get production date.</td>
-</tr>
-<tr>
-<td><code>HardwareVersionTask</code></td>
-<td>READ</td>
-<td>Get hardware version.</td>
-</tr>
-<tr>
-<td><code>FirmwareVersionTask</code></td>
-<td>READ</td>
-<td>Get firmware version.</td>
-</tr>
-<tr>
-<td><code>SoftwareVersionTask</code></td>
-<td>READ</td>
-<td>Get software version.</td>
-</tr>
-<tr>
-<td><code>BatteryTask</code></td>
-<td>READ</td>
-<td>Get battery capacity.</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Write <code>ConfigKeyEnum.GET_DEVICE_MAC</code>，get MAC address.</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Write<code>ConfigKeyEnum.GET_DEVICE_NAME</code>，get device name.</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Call<code>setDeviceName(String deviceName)</code>，set device name（The length of the name cannot be more than 8）.</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Write<code>ConfigKeyEnum.GET_CONNECTABLE</code>，get evice connection status; 01:Connectable; 00：Unconnectable.</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Call<code>setConnectable(boolean isConnectable)</code>，Set the connection status.</td>
-</tr>
-<tr>
-<td><code>ResetDeviceTask</code></td>
-<td>WRITE</td>
-<td>Reset</td>
-</tr>
-</tbody>
-</table>
+|Task Class|Task Type|Function
+|----|----|----
+|`LockStateTask`|READ|Get Lock State; **0x00** stands for LOCKED and needs to be unlocked; **0x01** stands for UNLOCKED; **0x02** stands for Uulocked and automatic relock disabled.
+|`LockStateTask`|WRITE|Set new password; AES encryption of 16 byte new password with 16 byte old password ( To prevent the new password from being broadcast in the clear, the client shall AES-128-ECB encrypt the new password with the existing password. The BeaconX shall perform the decryption with its existing password and set that value as the new password. ).
+|`UnLockTask`|READ|Get a 128-bit challenge token. This token is for one-time use and cannot be replayed.To securely unlock the BeaconX, the host must write a one-time use unlock_token into the characteristic. To create the unlock_token, it first reads the randomly generated 16-byte challenge and generates it using AES-128-ECB.encrypt (key=password[16], text=challenge[16]).
+|`UnLockTask`|WRITE|Unlock，If the result of this calculation matches the unlock_token written to the characteristic, the beacon is unlocked. Sets the LOCK STATE to 0x01 on success.
+|`ManufacturerTask`|READ|Get manufacturer.
+|`DeviceModelTask` |READ|Get product model.
+|`ProductDateTask`|READ|Get production date.
+| `HardwareVersionTask`|READ|Get hardware version.
+|`FirmwareVersionTask`|READ|Get firmware version.
+|`SoftwareVersionTask`|READ|Get software version.
+|`BatteryTask`|READ|Get battery capacity.
+| `WriteConfigTask`|WRITE_NO_RESPONSE|Write `ConfigKeyEnum.GET_DEVICE_MAC`，get MAC address.
+| `WriteConfigTask`|WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_DEVICE_NAME`，get device name.
+|`WriteConfigTask`|WRITE_NO_RESPONSE|Call`setDeviceName(String deviceName)`，set device name（The length of the name cannot be more than 8）.
+|`WriteConfigTask`|WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_CONNECTABLE`，get evice connection status; 01:Connectable; 00：Unconnectable.
+|`WriteConfigTask`|WRITE_NO_RESPONSE|Call`setConnectable(boolean isConnectable)`，Set the connection status.
+|`ResetDeviceTask` |WRITE|Reset
 
 
 
 iBeacon information
 --
 
-<table>
-<thead>
-<tr>
-<th>Task Class</th>
-<th>Task Type</th>
-<th>Function</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Write <code>ConfigKeyEnum.GET_IBEACON_UUID</code>，get iBeacon UUID.</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Call<code>setiBeaconUUID(String uuidHex)</code>，set iBeacon UUID(16bytes).</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Write<code>ConfigKeyEnum.GET_IBEACON_INFO</code>，get iBeacon Major、Minor and advTxPower(RSSI@1m).</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Call <code>setiBeaconData(int major, int minor, int advTxPower)</code>，set iBeacon Major(2bytes)、Minor(2bytes) and advTxPower(RSSI@1m, 1bytes).</td>
-</tr>
-</tbody>
-</table>
+|Task Class|Task Type|Function
+|----|----|----
+|`WriteConfigTask` |WRITE_NO_RESPONSE|Write `ConfigKeyEnum.GET_IBEACON_UUID`，get iBeacon UUID.
+|`WriteConfigTask`|WRITE_NO_RESPONSE|Call`setiBeaconUUID(String uuidHex)`，set iBeacon UUID(16bytes).
+|`WriteConfigTask`|WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_IBEACON_INFO`，get iBeacon Major、Minor and advTxPower(RSSI@1m).
+| `WriteConfigTask`|WRITE_NO_RESPONSE|Call `setiBeaconData(int major, int minor, int advTxPower)`，set iBeacon Major(2bytes)、Minor(2bytes) and advTxPower(RSSI@1m, 1bytes).
 
 
 Eddystone information（URL,UID,TLM）
 ---
 
-<table>
-<thead>
-<tr>
-<th>Task Class</th>
-<th>Task Type</th>
-<th>Function</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td><code>AdvSlotTask</code></td>
-<td>WRITE</td>
-<td>Switch SLOT. Please take <code>SlotEnum</code> as reference</td>
-</tr>
-<tr>
-<td><code>AdvSlotDataTask</code></td>
-<td>READ</td>
-<td>After switching the SLOT, get the current SLOT data and parse the returned data according to the SLOT type.</td>
-</tr>
-</tbody>
-</table>
-
+|Task Class|Task Type|Function
+|----|----|----
+| `AdvSlotTask` |WRITE|Switch SLOT. Please take `SlotEnum` as reference
+| `AdvSlotDataTask` |READ|After switching the SLOT, get the current SLOT data and parse the returned data according to the SLOT type.
 
 ```
 public void setSlotData(byte[] value) {
@@ -339,71 +202,23 @@ public void setSlotData(byte[] value) {
     }
 ```
 
-<table>
-<thead>
-<tr>
-<th>Task Class</th>
-<th>Task Type</th>
-<th>Function</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td><code>AdvSlotDataTask</code></td>
-<td>WRITE</td>
-<td>After switching the SLOT, set the current SLOT data</td>
-</tr>
-</tbody>
-</table>
+|Task Class|Task Type|Function
+|----|----|----
+| `AdvSlotDataTask` |WRITE|After switching the SLOT, set the current SLOT data
 
 	UID data composition：SLOT type(0x00) + Namespace(10bytes) + Instance ID(6bytes)
 	URL data composition：SLOT type(0x10) + URLScheme(1bytes) + URLContent(Max 17bytes)
 	TLM data composition：SLOT type(0x20)
 	NO_DATA data composition：0
 
-<table>
-<thead>
-<tr>
-<th>Task Class</th>
-<th>Task Type</th>
-<th>Function</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td><code>RadioTxPowerTask</code></td>
-<td>READ</td>
-<td>Get current SLOT Tx Power.</td>
-</tr>
-<tr>
-<td><code>RadioTxPowerTask</code></td>
-<td>WRITE</td>
-<td>Set current SLOT Tx Power(1bytes). Please take <code>TxPowerEnum</code> as reference</td>
-</tr>
-<tr>
-<td><code>AdvIntervalTask</code></td>
-<td>READ</td>
-<td>Get current SLOT broadcasting Interval.</td>
-</tr>
-<tr>
-<td><code>AdvIntervalTask</code></td>
-<td>WRITE</td>
-<td>Set current SLOT broadcasting Interval(2bytes). Range：100ms- 4000ms. Example：0x03E8=1000 (Unit:ms).</td>
-</tr>
-<tr>
-<td><code>AdvTxPowerTask</code></td>
-<td>WRITE</td>
-<td>Set currnent SLOT advTxPower(RSSI@0m, 1bytes). Range：-127dBm—0dBm. Example：0xED=-19dBm.</td>
-</tr>
-<tr>
-<td><code>WriteConfigTask</code></td>
-<td>WRITE_NO_RESPONSE</td>
-<td>Write<code>ConfigKeyEnum.GET_SLOT_TYPE</code>，get the SLOT type of the five SLOTs. Please take <code>SlotFrameTypeEnum</code> as reference.</td>
-</tr>
-</tbody>
-</table>
+|Task Class|Task Type|Function
+|----|----|----
+|`RadioTxPowerTask` |READ|Get current SLOT Tx Power.
+|`RadioTxPowerTask`|WRITE|Set current SLOT Tx Power(1bytes). Please take `TxPowerEnum` as reference
+|`AdvIntervalTask`|READ|Get current SLOT broadcasting Interval.
+|`AdvIntervalTask`|WRITE|Set current SLOT broadcasting Interval(2bytes). Range：100ms- 4000ms. Example：0x03E8=1000 (Unit:ms).
+|`AdvTxPowerTask`|WRITE|Set currnent SLOT advTxPower(RSSI@0m, 1bytes). Range：-127dBm—0dBm. Example：0xED=-19dBm.
+|`WriteConfigTask` |WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_SLOT_TYPE`，get the SLOT type of the five SLOTs. Please take `SlotFrameTypeEnum` as reference.
 
 
 * **Create tasks**
