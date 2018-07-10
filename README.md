@@ -27,7 +27,7 @@ include ':app', ':mokosupport'
 
 **Initialize sdk at project initialization**
 
-```java
+```
 MokoSupport.getInstance().init(getApplicationContext());
 ```
 
@@ -41,13 +41,13 @@ MokoSupport.getInstance().init(getApplicationContext());
 
  **Start scanning**
 
-```java
+```
 MokoSupport.getInstance().startScanDevice(callback);
 ```
 
  **End scanning**
 
-```java
+```
 MokoSupport.getInstance().stopScanDevice();
 ```
  **Implement the scanning callback interface**
@@ -66,7 +66,7 @@ public interface MokoScanDeviceCallback {
 ```
 * **Analysis `DeviceInfo` ; inferred `BeaconInfo`**
 
-```java
+```
 BeaconInfo beaconInfo = new BeaconXInfoParseableImpl().parseDeviceInfo(device);
 ```
 
@@ -75,7 +75,7 @@ Please refer to "Demo Project" to use `BeaconInfoParseableImpl` class. You can g
 You can filter devices according to the 5th and 6th bytes in the field of broadcasting ServiceID---0xAAFE stands for Eddystone; 0x20FF stands for iBeacon; 0x10FF stands for custom device information witch includs MAC address, Device Name, Battery information etc.
 
 
-```java
+```
 if (((int) scanRecord[5] & 0xff) == 0xAA && ((int) scanRecord[6] & 0xff) == 0xFE) {
             length = (int) scanRecord[7];
             isEddystone = true;
@@ -93,7 +93,7 @@ if (((int) scanRecord[5] & 0xff) == 0xAA && ((int) scanRecord[6] & 0xff) == 0xFE
 ### 2.2 Connect to the device
 
 
-```java
+```
 MokoSupport.getInstance().connDevice(context, address, mokoConnStateCallback);
 ```
 
@@ -133,10 +133,23 @@ At present, all the tasks sent from the SDK can be divided into 4 types:
 
 Encapsulated tasks are as follows:
 
+<table>
+<thead>
+<tr>
+<th>Task Class</th>
+<th>Task Type</th>
+<th>Function</th>
+</tr>
+</thead>
 
-Task Class | Task Type | Function
----------- | --------- | ---- | ----
-NotifyConfigTask | NOTIFY | Enable notification property
+<tbody>
+<tr>
+<td>NotifyConfigTask</td>
+<td>NOTIFY</td>
+<td>Enable notification property</td>
+</tr>
+</tbody>
+</table>
 
 
 Custom device information
@@ -183,7 +196,8 @@ Eddystone information（URL,UID,TLM）
 | `AdvSlotTask` |WRITE|Switch SLOT. Please take `SlotEnum` as reference
 | `AdvSlotDataTask` |READ|After switching the SLOT, get the current SLOT data and parse the returned data according to the SLOT type.
 
-```java
+
+```
 public void setSlotData(byte[] value) {
         int frameType = value[0];
         SlotFrameTypeEnum slotFrameTypeEnum = SlotFrameTypeEnum.fromFrameType(frameType);
@@ -228,7 +242,7 @@ The task callback (`MokoOrderTaskCallback`) and task type need to be passed when
 
 Examples of creating tasks are as follows:
 
-```java
+```
     /**
      * @Description   get LOCK STATE
      */
@@ -259,7 +273,7 @@ Examples of creating tasks are as follows:
 
 * **Send tasks**
 
-```java
+```
 MokoSupport.getInstance().sendOrder(OrderTask... orderTasks);
 ```
 
@@ -296,7 +310,7 @@ public interface MokoOrderTaskCallback {
 
 If the task belongs to `NOTIFY` and ` WRITE_NO_RESPONSE` task has been sent, the task is in listening state. When there is data returned from the device, the data will be sent in the form of broadcast, and the action of receiving broadcast is `MokoConstants.ACTION_RESPONSE_NOTIFY`.
 
-```java
+```
 String action = intent.getAction();
 ...
 if (MokoConstants.ACTION_RESPONSE_NOTIFY.equals(action)) {
