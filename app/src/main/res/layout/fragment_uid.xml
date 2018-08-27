@@ -48,6 +48,7 @@
                 android:maxLength="20"
                 android:singleLine="true"
                 android:textColor="@color/black_333333"
+                android:textColorHint="@color/grey_ebebeb"
                 android:textSize="15sp" />
         </LinearLayout>
 
@@ -74,6 +75,7 @@
                 android:maxLength="12"
                 android:singleLine="true"
                 android:textColor="@color/black_333333"
+                android:textColorHint="@color/grey_ebebeb"
                 android:textSize="15sp" />
         </LinearLayout>
     </LinearLayout>

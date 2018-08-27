@@ -1,6 +1,8 @@
 package com.moko.beaconx.dialog;
 
 import android.content.Context;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -13,7 +15,7 @@ import butterknife.Bind;
 import butterknife.OnClick;
 
 public class DeviceNameDialog extends BaseDialog {
-
+    private final String FILTER_ASCII = "\\A\\p{ASCII}*\\z";
 
     @Bind(R.id.et_device_name)
     EditText etDeviceName;
@@ -29,7 +31,17 @@ public class DeviceNameDialog extends BaseDialog {
 
     @Override
     protected void renderConvertView(View convertView, Object o) {
+        InputFilter filter = new InputFilter() {
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                if (!(source + "").matches(FILTER_ASCII)) {
+                    return "";
+                }
 
+                return null;
+            }
+        };
+        etDeviceName.setFilters(new InputFilter[]{filter});
     }
 
     @OnClick({R.id.tv_cancel, R.id.tv_ensure})
@@ -41,15 +53,15 @@ public class DeviceNameDialog extends BaseDialog {
                 break;
             case R.id.tv_ensure:
                 dismiss();
-                if (TextUtils.isEmpty(etDeviceName.getText().toString())) {
+                String deviceName = etDeviceName.getText().toString();
+                if (TextUtils.isEmpty(deviceName)) {
                     ToastUtils.showToast(getContext(), getContext().getString(R.string.device_name_null));
                     return;
                 }
-                if (etDeviceName.getText().toString().length() > 8) {
+                if (deviceName.length() > 8) {
                     ToastUtils.showToast(getContext(), "Data format incorrect!");
                     return;
                 }
-                deviceNameClickListener.onEnsureClicked(etDeviceName.getText().toString());
                 break;
         }
     }

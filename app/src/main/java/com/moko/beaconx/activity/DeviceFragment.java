@@ -32,6 +32,8 @@ public class DeviceFragment extends Fragment {
     TextView tvHardwareVersion;
     @Bind(R.id.tv_manufacturer)
     TextView tvManufacturer;
+    @Bind(R.id.tv_firmware_version)
+    TextView tvFirmwareVersion;
 
 
     public DeviceFragment() {
@@ -108,7 +110,7 @@ public class DeviceFragment extends Fragment {
 
     public void setFirmwareVersion(byte[] value) {
         String firmwareVersion = MokoUtils.hex2String(MokoUtils.bytesToHexString(value));
-        LogModule.i("固件版本：" + firmwareVersion);
+        tvFirmwareVersion.setText(firmwareVersion);
     }
 
     public void setSoftwareVersion(byte[] value) {

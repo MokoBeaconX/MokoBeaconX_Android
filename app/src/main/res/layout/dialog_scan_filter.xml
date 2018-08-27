@@ -28,7 +28,8 @@
                 android:gravity="center_vertical"
                 android:hint="Device name or mac address"
                 android:paddingLeft="10dp"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:textColorHint="@color/grey_ebebeb" />
 
             <ImageView
                 android:id="@+id/iv_filter_delete"

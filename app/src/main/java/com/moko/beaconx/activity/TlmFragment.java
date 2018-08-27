@@ -63,7 +63,7 @@ public class TlmFragment extends Fragment implements SeekBar.OnSeekBarChangeList
     private void setValue() {
         if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.NO_DATA) {
             sbAdvInterval.setProgress(9);
-            sbTxPower.setProgress(5);
+            sbTxPower.setProgress(6);
         } else {
             int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
             sbAdvInterval.setProgress(advIntervalProgress);

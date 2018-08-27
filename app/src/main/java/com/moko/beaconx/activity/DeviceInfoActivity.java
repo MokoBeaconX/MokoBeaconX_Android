@@ -19,6 +19,7 @@ import android.os.IBinder;
 import android.support.annotation.IdRes;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -37,8 +38,10 @@ import com.moko.beaconx.utils.ToastUtils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.entity.ConfigKeyEnum;
+import com.moko.support.entity.DeviceInfo;
 import com.moko.support.entity.OrderType;
 import com.moko.support.log.LogModule;
+import com.moko.support.task.OrderTask;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
 
@@ -142,6 +145,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 mMokoService.getBattery());
     }
 
+    private String unLockResponse;
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
         @Override
@@ -152,18 +156,38 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 if (!BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                     abortBroadcast();
                 }
+                if (MokoConstants.ACTION_CONNECT_SUCCESS.equals(action)) {
+                    dismissLoadingProgressDialog();
+                    showVerifyingProgressDialog();
+                    mMokoService.mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mMokoService.sendOrder(mMokoService.getLockState());
+                        }
+                    }, 1000);
+                }
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
                     dismissSyncProgressDialog();
-                    AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
-                    builder.setTitle("Dismiss");
-                    builder.setMessage("The device disconnected!");
-                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            back();
-                        }
-                    });
-                    builder.show();
+                    dismissLoadingProgressDialog();
+                    if (MokoSupport.getInstance().isBluetoothOpen()) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
+                        builder.setTitle("Dismiss");
+                        builder.setMessage("The device disconnected!");
+                        builder.setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mMokoService.connDevice(mDeviceMac);
+                                showLoadingProgressDialog();
+                            }
+                        });
+                        builder.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                back();
+                            }
+                        });
+                        builder.show();
+                    }
                 }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
                 }
@@ -173,6 +197,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
                     OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
                     OrderType orderType = response.orderType;
+                    int responseType = response.responseType;
                     byte[] value = response.responseValue;
                     switch (orderType) {
                         case writeConfig:
@@ -270,7 +295,8 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                             }
                             break;
                         case lockState:
-                            if ("eb63000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                            String valueStr = MokoUtils.bytesToHexString(value);
+                            if ("eb63000100".equals(valueStr.toLowerCase())) {
                                 // 设备上锁
                                 if (isModifyPassword) {
                                     isModifyPassword = false;
@@ -278,7 +304,32 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                                     ToastUtils.showToast(DeviceInfoActivity.this, "Modify successfully!");
                                     back();
                                 }
+                            } else if ("00".equals(valueStr)) {
+                                if (!TextUtils.isEmpty(unLockResponse)) {
+                                    dismissVerifyProgressDialog();
+                                    unLockResponse = "";
+                                    ToastUtils.showToast(DeviceInfoActivity.this, "Password error");
+                                    back();
+                                } else {
+                                    LogModule.i("锁定状态，获取unLock，解锁");
+                                    mMokoService.sendOrder(mMokoService.getUnLock());
+                                }
+                            } else if ("01".equals(valueStr)) {
+                                dismissVerifyProgressDialog();
+                                LogModule.i("解锁成功");
+                                unLockResponse = "";
                             }
+                            break;
+                        case unLock:
+                            if (responseType == OrderTask.RESPONSE_TYPE_READ) {
+                                unLockResponse = MokoUtils.bytesToHexString(value);
+                                LogModule.i("返回的随机数：" + unLockResponse);
+                                mMokoService.sendOrder(mMokoService.setConfigNotify(), mMokoService.setUnLock(mPassword, value));
+                            }
+                            if (responseType == OrderTask.RESPONSE_TYPE_WRITE) {
+                                mMokoService.sendOrder(mMokoService.getLockState());
+                            }
+                            break;
                         case resetDevice:
                             ToastUtils.showToast(DeviceInfoActivity.this, "Reset successfully!");
                             break;
@@ -303,6 +354,16 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                     switch (blueState) {
                         case BluetoothAdapter.STATE_TURNING_OFF:
                             dismissSyncProgressDialog();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
+                            builder.setTitle("Dismiss");
+                            builder.setMessage("The current system of bluetooth is not available!");
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    back();
+                                }
+                            });
+                            builder.show();
                             break;
 
                     }
@@ -579,4 +640,44 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
             dismissDFUProgressDialog();
         }
     };
+
+    private ProgressDialog mLoadingDialog;
+
+    private void showLoadingProgressDialog() {
+        mLoadingDialog = new ProgressDialog(DeviceInfoActivity.this);
+        mLoadingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mLoadingDialog.setCanceledOnTouchOutside(false);
+        mLoadingDialog.setCancelable(false);
+        mLoadingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mLoadingDialog.setMessage("Connecting...");
+        if (!isFinishing() && mLoadingDialog != null && !mLoadingDialog.isShowing()) {
+            mLoadingDialog.show();
+        }
+    }
+
+    private void dismissLoadingProgressDialog() {
+        if (!isFinishing() && mLoadingDialog != null && mLoadingDialog.isShowing()) {
+            mLoadingDialog.dismiss();
+        }
+    }
+
+    private ProgressDialog mVerifyingDialog;
+
+    private void showVerifyingProgressDialog() {
+        mVerifyingDialog = new ProgressDialog(this);
+        mVerifyingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mVerifyingDialog.setCanceledOnTouchOutside(false);
+        mVerifyingDialog.setCancelable(false);
+        mVerifyingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mVerifyingDialog.setMessage("Verifying...");
+        if (!isFinishing() && mVerifyingDialog != null && !mVerifyingDialog.isShowing()) {
+            mVerifyingDialog.show();
+        }
+    }
+
+    private void dismissVerifyProgressDialog() {
+        if (!isFinishing() && mVerifyingDialog != null && mVerifyingDialog.isShowing()) {
+            mVerifyingDialog.dismiss();
+        }
+    }
 }

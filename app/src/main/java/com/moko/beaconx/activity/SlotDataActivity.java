@@ -125,22 +125,23 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            abortBroadcast();
             if (intent != null) {
                 String action = intent.getAction();
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
-                    ToastUtils.showToast(SlotDataActivity.this, "Disconnected");
-                    finish();
+                    SlotDataActivity.this.finish();
                 }
                 if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
+                    abortBroadcast();
                 }
                 if (MokoConstants.ACTION_RESPONSE_FINISH.equals(action)) {
+                    abortBroadcast();
                     ToastUtils.showToast(SlotDataActivity.this, "Successfully configure");
                     dismissSyncProgressDialog();
                     SlotDataActivity.this.setResult(SlotDataActivity.this.RESULT_OK);
-                    finish();
+                    SlotDataActivity.this.finish();
                 }
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
+                    abortBroadcast();
                     OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
                     OrderType orderType = response.orderType;
                     byte[] value = response.responseValue;
@@ -151,6 +152,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
 
                 }
                 if (MokoConstants.ACTION_RESPONSE_NOTIFY.equals(action)) {
+                    abortBroadcast();
                     OrderType orderType = (OrderType) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE);
                     byte[] value = intent.getByteArrayExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE);
                     switch (orderType) {
@@ -159,7 +161,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
                             if ("eb63000100".equals(valueHexStr.toLowerCase())) {
                                 // 设备上锁
                                 ToastUtils.showToast(SlotDataActivity.this, "Locked");
-                                finish();
+                                SlotDataActivity.this.finish();
                             }
                             break;
                     }
@@ -170,7 +172,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
                         case BluetoothAdapter.STATE_TURNING_OFF:
                             // 蓝牙断开
 //                            ToastUtils.showToast(SlotDataActivity.this, "Disconnected");
-//                            SlotDataActivity.this.finish();
+                            SlotDataActivity.this.finish();
                             break;
 
                     }

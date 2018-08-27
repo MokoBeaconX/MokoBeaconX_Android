@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Tips:The device name can only be letters,numbers and underscores,and up to 8 characters."
+            android:text="Tips:The length of device name should be 1-8 characters."
             android:textSize="12sp" />
 
         <EditText
@@ -29,11 +29,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="12dp"
-            android:digits="_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             android:focusable="true"
             android:hint="Device Name"
             android:maxLength="8"
             android:singleLine="true"
+            android:textColorHint="@color/grey_ebebeb"
             android:textSize="16sp" />
 
         <View

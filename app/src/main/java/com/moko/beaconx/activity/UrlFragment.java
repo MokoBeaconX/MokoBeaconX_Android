@@ -79,8 +79,8 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
     private void setDefault() {
         if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.NO_DATA) {
             sbAdvInterval.setProgress(9);
-            sbAdvTxPower.setProgress(118);
-            sbTxPower.setProgress(5);
+            sbAdvTxPower.setProgress(127);
+            sbTxPower.setProgress(6);
             mUrlSchemeHex = MokoUtils.int2HexString(UrlSchemeEnum.HTTP_WWW.getUrlType());
             tvUrlScheme.setText(UrlSchemeEnum.HTTP_WWW.getUrlDesc());
         } else {

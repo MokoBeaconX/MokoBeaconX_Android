@@ -64,6 +64,7 @@ public class ScanFilterDialog extends BaseDialog {
             etFilterName.setText(filterName);
             etFilterName.setSelection(filterName.length());
         }
+        setDismissEnable(true);
     }
 
     @OnClick({R.id.iv_filter_delete, R.id.tv_done})
