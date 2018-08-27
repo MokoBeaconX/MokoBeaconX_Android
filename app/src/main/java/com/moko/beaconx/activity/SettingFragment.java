@@ -132,6 +132,7 @@ public class SettingFragment extends Fragment {
                 }, 200);
                 break;
             case R.id.rl_update_firmware:
+                activity.chooseFirmwareFile();
                 break;
             case R.id.rl_reset_facotry:
                 final ResetDeviceDialog resetDeviceDialog = new ResetDeviceDialog(activity);
@@ -168,9 +169,7 @@ public class SettingFragment extends Fragment {
         }
     }
 
-    public void setDeviceName(byte[] value) {
-        String valueStr = MokoUtils.bytesToHexString(value);
-        String deviceName = MokoUtils.hex2String(valueStr.substring(8, valueStr.length()));
+    public void setDeviceName(String deviceName) {
         tvDeviceName.setText(deviceName);
     }
 

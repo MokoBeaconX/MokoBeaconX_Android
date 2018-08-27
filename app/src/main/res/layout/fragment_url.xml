@@ -102,7 +102,7 @@
                 android:layout_alignBaseline="@id/adv_interval"
                 android:layout_marginLeft="10dp"
                 android:layout_toRightOf="@id/adv_interval"
-                android:text="（100ms-4000ms）"
+                android:text="（100ms-5000ms）"
                 android:textColor="@color/grey_b3b3b3"
                 android:textSize="12sp" />
 
@@ -113,7 +113,7 @@
                 android:layout_below="@id/adv_interval"
                 android:layout_marginTop="10dp"
                 android:layout_toLeftOf="@+id/tv_adv_interval"
-                android:max="39"
+                android:max="49"
                 android:progress="0" />
 
             <TextView
@@ -185,7 +185,7 @@
                 android:layout_below="@id/tx_power"
                 android:layout_marginTop="10dp"
                 android:layout_toLeftOf="@+id/tv_tx_power"
-                android:max="7"
+                android:max="8"
                 android:progress="0" />
 
             <TextView

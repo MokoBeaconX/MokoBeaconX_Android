@@ -1,6 +1,9 @@
 package com.moko.beaconx.adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Paint;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,6 +60,7 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
                 }
             }
         });
+        holder.tvConnState.setText("");
         LogModule.i(device.toString());
         holder.llData.removeAllViews();
         ArrayList<BeaconXInfo.ValidData> validDatas = new ArrayList<>(device.validDataHashMap.values());
@@ -103,6 +107,11 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
                 if (battery > 80 && battery <= 100) {
                     holder.ivBattery.setImageResource(R.drawable.battery_1);
                 }
+                if (Integer.parseInt(beaconXDevice.isConnected) == 0) {
+                    holder.tvConnState.setText("UNCON");
+                } else {
+                    holder.tvConnState.setText("CON");
+                }
                 LogModule.i(beaconXDevice.toString());
             }
         }
@@ -119,12 +128,22 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         return view;
     }
 
-    private View createURLView(BeaconXURL url) {
+    private View createURLView(final BeaconXURL url) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.beaconx_url, null);
         TextView tvTxPower = ButterKnife.findById(view, R.id.tv_tx_power);
         TextView tvUrl = ButterKnife.findById(view, R.id.tv_url);
         tvTxPower.setText(String.format("RSSI@0m:%sdBm", url.rangingData));
         tvUrl.setText(url.url);
+        tvUrl.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG); //下划线
+        tvUrl.getPaint().setAntiAlias(true);//抗锯齿
+        tvUrl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri uri = Uri.parse(url.url);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                mContext.startActivity(intent);
+            }
+        });
         return view;
     }
 
@@ -169,6 +188,8 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         TextView tvName;
         @Bind(R.id.tv_rssi)
         TextView tvRssi;
+        @Bind(R.id.tv_conn_state)
+        TextView tvConnState;
         @Bind(R.id.tv_connect)
         TextView tvConnect;
         @Bind(R.id.iv_battery)

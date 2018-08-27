@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="170dp"
             android:text=""
-            android:textColor="@color/grey_666666"
+            android:textColor="@color/blue_0099ff"
             android:textSize="12sp" />
     </RelativeLayout>
 

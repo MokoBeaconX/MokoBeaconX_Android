@@ -11,6 +11,7 @@ public enum TxPowerEnum implements Serializable {
     NEGATIVE_8(-8),
     NEGATIVE_4(-4),
     NEGATIVE_0(0),
+    POSITIVE_3(3),
     POSITIVE_4(4);
 
     private int txPower;

@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -12,10 +13,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.IdRes;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -23,23 +26,34 @@ import android.widget.FrameLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
+import com.moko.beaconx.service.DfuService;
 import com.moko.beaconx.service.MokoService;
+import com.moko.beaconx.utils.FileUtils;
 import com.moko.beaconx.utils.ToastUtils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.entity.ConfigKeyEnum;
 import com.moko.support.entity.OrderType;
+import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
+
+import java.io.File;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import no.nordicsemi.android.dfu.DfuProgressListener;
+import no.nordicsemi.android.dfu.DfuProgressListenerAdapter;
+import no.nordicsemi.android.dfu.DfuServiceInitiator;
+import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
 
 public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.OnCheckedChangeListener {
+    public static final int REQUEST_CODE_SELECT_FIRMWARE = 0x10;
 
     @Bind(R.id.frame_container)
     FrameLayout frameContainer;
@@ -59,6 +73,8 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     private SettingFragment settingFragment;
     private DeviceFragment deviceFragment;
     public String mPassword;
+    public String mDeviceMac;
+    public String mDeviceName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,12 +190,19 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                                         break;
                                     case GET_DEVICE_MAC:
                                         if (value.length >= 10) {
-                                            deviceFragment.setDeviceMac(value);
+                                            String valueStr = MokoUtils.bytesToHexString(value);
+                                            String mac = valueStr.substring(8, valueStr.length()).toUpperCase();
+                                            String macShow = String.format("%s:%s:%s:%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 6), mac.substring(6, 8), mac.substring(8, 10), mac.substring(10, 12));
+                                            deviceFragment.setDeviceMac(macShow);
+                                            mDeviceMac = macShow;
                                         }
                                         break;
                                     case GET_DEVICE_NAME:
                                         if (value.length >= 4) {
-                                            settingFragment.setDeviceName(value);
+                                            String valueStr = MokoUtils.bytesToHexString(value);
+                                            String deviceName = MokoUtils.hex2String(valueStr.substring(8, valueStr.length()));
+                                            settingFragment.setDeviceName(deviceName);
+                                            mDeviceName = deviceName;
                                         }
                                         break;
                                     case GET_CONNECTABLE:
@@ -291,17 +314,31 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            switch (requestCode) {
-                case MokoConstants.REQUEST_CODE_ENABLE_BT:
-                    break;
+        if (requestCode == MokoConstants.REQUEST_CODE_ENABLE_BT) {
+            if (resultCode != RESULT_OK) {
+                // 未打开蓝牙
+                finish();
             }
-        } else {
-            switch (requestCode) {
-                case MokoConstants.REQUEST_CODE_ENABLE_BT:
-                    // 未打开蓝牙
-                    finish();
-                    break;
+
+        }
+        if (requestCode == REQUEST_CODE_SELECT_FIRMWARE) {
+            if (resultCode == RESULT_OK) {
+                //得到uri，后面就是将uri转化成file的过程。
+                Uri uri = data.getData();
+                String firmwareFilePath = FileUtils.getPath(this, uri);
+                //
+                final File firmwareFile = new File(firmwareFilePath);
+                if (firmwareFile.exists()) {
+                    final DfuServiceInitiator starter = new DfuServiceInitiator(mDeviceMac)
+                            .setDeviceName(mDeviceName)
+                            .setKeepBond(false)
+                            .setDisableNotification(true);
+                    starter.setZip(null, firmwareFilePath);
+                    starter.start(this, DfuService.class);
+                    showDFUProgressDialog("Waiting...");
+                } else {
+                    Toast.makeText(this, "file is not exists!", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
@@ -426,4 +463,120 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         showSyncingProgressDialog();
         mMokoService.sendOrder(mMokoService.setConnectable(isConneacted), mMokoService.getConnectable());
     }
+
+    public void chooseFirmwareFile() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        try {
+            startActivityForResult(Intent.createChooser(intent, "select file first!"), REQUEST_CODE_SELECT_FIRMWARE);
+        } catch (ActivityNotFoundException ex) {
+            ToastUtils.showToast(this, "install file manager app");
+        }
+    }
+
+    private ProgressDialog mDFUDialog;
+
+    private void showDFUProgressDialog(String tips) {
+        mDFUDialog = new ProgressDialog(DeviceInfoActivity.this);
+        mDFUDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mDFUDialog.setCanceledOnTouchOutside(false);
+        mDFUDialog.setCancelable(false);
+        mDFUDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mDFUDialog.setMessage(tips);
+        if (!isFinishing() && mDFUDialog != null && !mDFUDialog.isShowing()) {
+            mDFUDialog.show();
+        }
+    }
+
+    private void dismissDFUProgressDialog() {
+        mDeviceConnectCount = 0;
+        if (!isFinishing() && mDFUDialog != null && mDFUDialog.isShowing()) {
+            mDFUDialog.dismiss();
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
+        builder.setTitle("Dismiss");
+        builder.setMessage("The device disconnected!");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                back();
+            }
+        });
+        builder.show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        DfuServiceListenerHelper.registerProgressListener(this, mDfuProgressListener);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        DfuServiceListenerHelper.unregisterProgressListener(this, mDfuProgressListener);
+    }
+
+    private int mDeviceConnectCount;
+
+    private final DfuProgressListener mDfuProgressListener = new DfuProgressListenerAdapter() {
+        @Override
+        public void onDeviceConnecting(String deviceAddress) {
+            LogModule.w("onDeviceConnecting...");
+            mDeviceConnectCount++;
+            if (mDeviceConnectCount > 3) {
+                Toast.makeText(DeviceInfoActivity.this, "Error:DFU Failed", Toast.LENGTH_SHORT).show();
+                dismissDFUProgressDialog();
+                final LocalBroadcastManager manager = LocalBroadcastManager.getInstance(DeviceInfoActivity.this);
+                final Intent abortAction = new Intent(DfuService.BROADCAST_ACTION);
+                abortAction.putExtra(DfuService.EXTRA_ACTION, DfuService.ACTION_ABORT);
+                manager.sendBroadcast(abortAction);
+            }
+        }
+
+        @Override
+        public void onDeviceDisconnecting(String deviceAddress) {
+            LogModule.w("onDeviceDisconnecting...");
+        }
+
+        @Override
+        public void onDfuProcessStarting(String deviceAddress) {
+            mDFUDialog.setMessage("DfuProcessStarting...");
+        }
+
+
+        @Override
+        public void onEnablingDfuMode(String deviceAddress) {
+            mDFUDialog.setMessage("EnablingDfuMode...");
+        }
+
+        @Override
+        public void onFirmwareValidating(String deviceAddress) {
+            mDFUDialog.setMessage("FirmwareValidating...");
+        }
+
+        @Override
+        public void onDfuCompleted(String deviceAddress) {
+            Toast.makeText(DeviceInfoActivity.this, "DfuCompleted!", Toast.LENGTH_SHORT).show();
+            dismissDFUProgressDialog();
+        }
+
+        @Override
+        public void onDfuAborted(String deviceAddress) {
+            mDFUDialog.setMessage("DfuAborted...");
+        }
+
+        @Override
+        public void onProgressChanged(String deviceAddress, int percent, float speed, float avgSpeed, int currentPart, int partsTotal) {
+            mDFUDialog.setMessage("Progress:" + percent + "%");
+        }
+
+        @Override
+        public void onError(String deviceAddress, int error, int errorType, String message) {
+            Toast.makeText(DeviceInfoActivity.this, "Error:" + message, Toast.LENGTH_SHORT).show();
+            LogModule.i("Error:" + message);
+            dismissDFUProgressDialog();
+        }
+    };
 }

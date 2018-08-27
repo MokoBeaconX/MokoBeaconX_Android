@@ -129,7 +129,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                     mMokoService.mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            mMokoService.sendOrder(mMokoService.setConfigNotify(), mMokoService.getLockState());
+                            mMokoService.sendOrder(mMokoService.getLockState());
                         }
                     }, 1000);
                 }
@@ -179,7 +179,7 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
                             if (responseType == OrderTask.RESPONSE_TYPE_READ) {
                                 unLockResponse = MokoUtils.bytesToHexString(value);
                                 LogModule.i("返回的随机数：" + unLockResponse);
-                                mMokoService.sendOrder(mMokoService.setUnLock(mPassword, value));
+                                mMokoService.sendOrder(mMokoService.setConfigNotify(), mMokoService.setUnLock(mPassword, value));
                             }
                             if (responseType == OrderTask.RESPONSE_TYPE_WRITE) {
                                 mMokoService.sendOrder(mMokoService.getLockState());
