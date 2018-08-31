@@ -41,7 +41,7 @@ public class DeviceNameDialog extends BaseDialog {
                 return null;
             }
         };
-        etDeviceName.setFilters(new InputFilter[]{filter});
+        etDeviceName.setFilters(new InputFilter[]{new InputFilter.LengthFilter(8), filter});
     }
 
     @OnClick({R.id.tv_cancel, R.id.tv_ensure})
@@ -62,6 +62,7 @@ public class DeviceNameDialog extends BaseDialog {
                     ToastUtils.showToast(getContext(), "Data format incorrect!");
                     return;
                 }
+                deviceNameClickListener.onEnsureClicked(etDeviceName.getText().toString());
                 break;
         }
     }

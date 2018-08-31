@@ -271,6 +271,7 @@
             android:layout_toRightOf="@id/manufacturer_title"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
+            android:gravity="right"
             android:text=""
             android:textColor="@color/grey_666666"
             android:textSize="14sp" />
