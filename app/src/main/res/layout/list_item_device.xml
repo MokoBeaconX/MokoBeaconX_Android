@@ -35,8 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/tv_name"
             android:layout_toRightOf="@id/tv_rssi"
-            android:text=""
-            android:layout_marginLeft="10dp"
+            android:text="CONN"
+            android:layout_marginLeft="12dp"
             android:textColor="@color/grey_666666" />
 
         <TextView
