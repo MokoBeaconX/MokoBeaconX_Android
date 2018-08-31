@@ -169,7 +169,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
                     dismissSyncProgressDialog();
                     dismissLoadingProgressDialog();
-                    if (MokoSupport.getInstance().isBluetoothOpen()) {
+                    if (MokoSupport.getInstance().isBluetoothOpen() && !isUpgrade) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
                         builder.setTitle("Dismiss");
                         builder.setMessage("The device disconnected!");
@@ -561,6 +561,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                isUpgrade = false;
                 back();
             }
         });
@@ -580,6 +581,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
     }
 
     private int mDeviceConnectCount;
+    private boolean isUpgrade;
 
     private final DfuProgressListener mDfuProgressListener = new DfuProgressListenerAdapter() {
         @Override
@@ -603,6 +605,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
 
         @Override
         public void onDfuProcessStarting(String deviceAddress) {
+            isUpgrade = true;
             mDFUDialog.setMessage("DfuProcessStarting...");
         }
 

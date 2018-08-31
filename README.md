@@ -216,7 +216,7 @@ public void setSlotData(byte[] value) {
 |`RadioTxPowerTask` |READ|Get current SLOT Tx Power.
 |`RadioTxPowerTask`|WRITE|Set current SLOT Tx Power(1bytes). Please take `TxPowerEnum` as reference
 |`AdvIntervalTask`|READ|Get current SLOT broadcasting Interval.
-|`AdvIntervalTask`|WRITE|Set current SLOT broadcasting Interval(2bytes). Range：100ms- 4000ms. Example：0x03E8=1000 (Unit:ms).
+|`AdvIntervalTask`|WRITE|Set current SLOT broadcasting Interval(2bytes). Range：100ms- 5000ms. Example：0x03E8=1000 (Unit:ms).
 |`AdvTxPowerTask`|WRITE|Set currnent SLOT advTxPower(RSSI@0m, 1bytes). Range：-127dBm—0dBm. Example：0xED=-19dBm.
 |`WriteConfigTask` |WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_SLOT_TYPE`，get the SLOT type of the five SLOTs. Please take `SlotFrameTypeEnum` as reference.
 
