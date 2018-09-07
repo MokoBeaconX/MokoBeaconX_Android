@@ -332,6 +332,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                             break;
                         case resetDevice:
                             ToastUtils.showToast(DeviceInfoActivity.this, "Reset successfully!");
+                            back();
                             break;
                     }
                 }

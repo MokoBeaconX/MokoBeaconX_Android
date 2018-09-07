@@ -268,11 +268,22 @@ public class MainActivity extends Activity implements MokoScanDeviceCallback, Be
             Iterator<BeaconXInfo> iterator = beaconXInfosFilter.iterator();
             while (iterator.hasNext()) {
                 BeaconXInfo beaconXInfo = iterator.next();
-                if (beaconXInfo.rssi > filterRssi
-                        && (TextUtils.isEmpty(filterName)
-                        || (!TextUtils.isEmpty(filterName) && (!TextUtils.isEmpty(beaconXInfo.name) && (!TextUtils.isEmpty(beaconXInfo.mac))
-                        && (beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase()) || beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase())))))) {
-                    continue;
+                if (beaconXInfo.rssi > filterRssi) {
+                    if (TextUtils.isEmpty(filterName)) {
+                        continue;
+                    } else {
+                        if (TextUtils.isEmpty(beaconXInfo.name) && TextUtils.isEmpty(beaconXInfo.mac)) {
+                            iterator.remove();
+                        } else if (TextUtils.isEmpty(beaconXInfo.name) && beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase())) {
+                            continue;
+                        } else if (TextUtils.isEmpty(beaconXInfo.mac) && beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase())) {
+                            continue;
+                        } else if (!TextUtils.isEmpty(beaconXInfo.name) && !TextUtils.isEmpty(beaconXInfo.mac) && (beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase()) || beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase()))) {
+                            continue;
+                        } else {
+                            iterator.remove();
+                        }
+                    }
                 } else {
                     iterator.remove();
                 }

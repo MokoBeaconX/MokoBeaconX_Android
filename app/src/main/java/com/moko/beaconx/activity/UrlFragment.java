@@ -90,9 +90,9 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
             tvAdvInterval.setText(String.format("%dms", activity.slotData.advInterval));
 
             if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.TLM) {
-                sbAdvTxPower.setProgress(118);
-                advTxPowerBytes = MokoUtils.toByteArray(-9, 1);
-                tvAdvTxPower.setText(String.format("%ddBm", -9));
+                sbAdvTxPower.setProgress(127);
+                advTxPowerBytes = MokoUtils.toByteArray(0, 1);
+                tvAdvTxPower.setText(String.format("%ddBm", 0));
             } else {
                 int advTxPowerProgress = activity.slotData.rssi_0m + 127;
                 sbAdvTxPower.setProgress(advTxPowerProgress);

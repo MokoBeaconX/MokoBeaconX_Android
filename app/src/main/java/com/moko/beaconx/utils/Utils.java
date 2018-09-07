@@ -112,4 +112,11 @@ public class Utils {
         }
         return null;
     }
+
+    public static boolean isEmpty(String str) {
+        if (str == null || str.length() == 0 || "null".equals(str))
+            return true;
+        else
+            return false;
+    }
 }
