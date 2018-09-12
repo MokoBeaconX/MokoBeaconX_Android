@@ -1,6 +1,5 @@
 package com.moko.beaconx.activity;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -54,7 +53,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 
-public class MainActivity extends Activity implements MokoScanDeviceCallback, BeaconXListAdapter.OnConnectListener {
+public class MainActivity extends BaseActivity implements MokoScanDeviceCallback, BeaconXListAdapter.OnConnectListener {
 
 
     @Bind(R.id.iv_refresh)

@@ -2,6 +2,8 @@ package com.moko.beaconx.activity;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,6 +30,7 @@ import butterknife.OnClick;
 public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeListener, ISlotDataAction {
 
     private static final String TAG = "UrlFragment";
+    private final String FILTER_ASCII = "\\A\\p{ASCII}*\\z";
     @Bind(R.id.et_url)
     EditText etUrl;
     @Bind(R.id.sb_adv_interval)
@@ -72,6 +75,17 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
         sbAdvInterval.setOnSeekBarChangeListener(this);
         sbAdvTxPower.setOnSeekBarChangeListener(this);
         sbTxPower.setOnSeekBarChangeListener(this);
+        InputFilter filter = new InputFilter() {
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                if (!(source + "").matches(FILTER_ASCII)) {
+                    return "";
+                }
+
+                return null;
+            }
+        };
+        etUrl.setFilters(new InputFilter[]{new InputFilter.LengthFilter(32), filter});
         setDefault();
         return view;
     }
@@ -81,8 +95,6 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
             sbAdvInterval.setProgress(9);
             sbAdvTxPower.setProgress(127);
             sbTxPower.setProgress(6);
-            mUrlSchemeHex = MokoUtils.int2HexString(UrlSchemeEnum.HTTP_WWW.getUrlType());
-            tvUrlScheme.setText(UrlSchemeEnum.HTTP_WWW.getUrlDesc());
         } else {
             int advIntervalProgress = activity.slotData.advInterval / 100 - 1;
             sbAdvInterval.setProgress(advIntervalProgress);
@@ -105,6 +117,8 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
             txPowerBytes = MokoUtils.toByteArray(activity.slotData.txPower, 1);
             tvTxPower.setText(String.format("%ddBm", activity.slotData.txPower));
         }
+        mUrlSchemeHex = MokoUtils.int2HexString(UrlSchemeEnum.HTTP_WWW.getUrlType());
+        tvUrlScheme.setText(UrlSchemeEnum.HTTP_WWW.getUrlDesc());
         if (activity.slotData.frameTypeEnum == SlotFrameTypeEnum.URL) {
             mUrlSchemeHex = MokoUtils.int2HexString(activity.slotData.urlSchemeEnum.getUrlType());
             tvUrlScheme.setText(activity.slotData.urlSchemeEnum.getUrlDesc());

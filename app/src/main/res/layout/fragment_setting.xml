@@ -34,7 +34,7 @@
             android:layout_centerVertical="true"
             android:drawablePadding="10dp"
             android:drawableRight="@drawable/arrow_right"
-            android:text="iBeacon"
+            android:text=""
             android:textColor="@color/grey_666666"
             android:textSize="14sp" />
 
@@ -178,7 +178,7 @@
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:src="@drawable/connectable_unchecked" />
+            android:src="@drawable/connectable_checked" />
 
         <View
             style="@style/divider_line"

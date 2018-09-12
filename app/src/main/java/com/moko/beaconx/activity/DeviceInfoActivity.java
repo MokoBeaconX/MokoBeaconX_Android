@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.IdRes;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -38,7 +37,6 @@ import com.moko.beaconx.utils.ToastUtils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
 import com.moko.support.entity.ConfigKeyEnum;
-import com.moko.support.entity.DeviceInfo;
 import com.moko.support.entity.OrderType;
 import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTask;
@@ -55,7 +53,7 @@ import no.nordicsemi.android.dfu.DfuProgressListenerAdapter;
 import no.nordicsemi.android.dfu.DfuServiceInitiator;
 import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
 
-public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.OnCheckedChangeListener {
+public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnCheckedChangeListener {
     public static final int REQUEST_CODE_SELECT_FIRMWARE = 0x10;
 
     @Bind(R.id.frame_container)
@@ -172,6 +170,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                     if (MokoSupport.getInstance().isBluetoothOpen() && !isUpgrade) {
                         AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
                         builder.setTitle("Dismiss");
+                        builder.setCancelable(false);
                         builder.setMessage("The device disconnected!");
                         builder.setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
                             @Override
@@ -318,6 +317,8 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                                 dismissVerifyProgressDialog();
                                 LogModule.i("解锁成功");
                                 unLockResponse = "";
+                                getSlotType();
+                                getDeviceInfo();
                             }
                             break;
                         case unLock:
@@ -357,6 +358,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
                             dismissSyncProgressDialog();
                             AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
                             builder.setTitle("Dismiss");
+                            builder.setCancelable(false);
                             builder.setMessage("The current system of bluetooth is not available!");
                             builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                 @Override
@@ -558,6 +560,7 @@ public class DeviceInfoActivity extends FragmentActivity implements RadioGroup.O
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
         builder.setTitle("Dismiss");
+        builder.setCancelable(false);
         builder.setMessage("The device disconnected!");
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override

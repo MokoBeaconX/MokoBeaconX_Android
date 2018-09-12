@@ -1,6 +1,5 @@
 package com.moko.beaconx.activity;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,7 +14,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 
-public class AboutActivity extends Activity {
+public class AboutActivity extends BaseActivity {
     @Bind(R.id.app_version)
     TextView appVersion;
 

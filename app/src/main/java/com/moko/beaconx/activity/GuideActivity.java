@@ -1,7 +1,6 @@
 package com.moko.beaconx.activity;
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -23,7 +22,7 @@ import com.moko.support.MokoSupport;
  * @Description
  * @ClassPath com.moko.beaconx.activity.GuideActivity
  */
-public class GuideActivity extends Activity {
+public class GuideActivity extends BaseActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 1;
 
