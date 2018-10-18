@@ -17,7 +17,7 @@ include ':app', ':mokosupport'
 
 	dependencies {
 		...
-		compile project(path: ':mokosupport')
+		implementation project(path: ':mokosupport')
 	}
 
 
