@@ -12,7 +12,7 @@ import com.moko.beaconx.utils.ToastUtils;
 import butterknife.Bind;
 import butterknife.OnClick;
 
-public class PasswordDialog extends BaseDialog {
+public class PasswordDialog extends BaseDialog<String> {
     @Bind(R.id.et_password)
     EditText etPassword;
 
@@ -26,8 +26,11 @@ public class PasswordDialog extends BaseDialog {
     }
 
     @Override
-    protected void renderConvertView(View convertView, Object o) {
-
+    protected void renderConvertView(View convertView, String password) {
+        if (!TextUtils.isEmpty(password)) {
+            etPassword.setText(password);
+            etPassword.setSelection(password.length());
+        }
     }
 
     @OnClick({R.id.tv_password_cancel, R.id.tv_password_ensure})

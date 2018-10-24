@@ -169,6 +169,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                                 dismissVerifyProgressDialog();
                                 LogModule.i("解锁成功");
                                 unLockResponse = "";
+                                mSavedPassword = mPassword;
                                 Intent deviceInfoIntent = new Intent(MainActivity.this, DeviceInfoActivity.class);
                                 deviceInfoIntent.putExtra(AppConstants.EXTRA_KEY_PASSWORD, mPassword);
                                 startActivityForResult(deviceInfoIntent, AppConstants.REQUEST_CODE_DEVICE_INFO);
@@ -453,6 +454,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     }
 
     private String mPassword;
+    private String mSavedPassword;
 
     @Override
     public void onConnectClick(final BeaconXInfo beaconXInfo) {
@@ -477,6 +479,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 mMokoService.stopScanDevice();
             }
             final PasswordDialog dialog = new PasswordDialog(this);
+            dialog.setData(mSavedPassword);
             dialog.setOnPasswordClicked(new PasswordDialog.PasswordClickListener() {
                 @Override
                 public void onEnsureClicked(String password) {
