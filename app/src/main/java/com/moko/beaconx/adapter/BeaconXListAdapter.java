@@ -123,8 +123,8 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         TextView tvNameSpace = ButterKnife.findById(view, R.id.tv_namespace);
         TextView tvInstanceId = ButterKnife.findById(view, R.id.tv_instance_id);
         tvTxPower.setText(String.format("RSSI@0m:%sdBm", uid.rangingData));
-        tvNameSpace.setText(uid.namespace);
-        tvInstanceId.setText(uid.instanceId);
+        tvNameSpace.setText(uid.namespace.toUpperCase());
+        tvInstanceId.setText(uid.instanceId.toUpperCase());
         return view;
     }
 
