@@ -414,6 +414,15 @@ public class MokoService extends Service implements MokoConnStateCallback, MokoO
     }
 
     /**
+     * @Description 关机
+     */
+    public OrderTask setClose() {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+        writeConfigTask.setData(ConfigKeyEnum.SET_CLOSE);
+        return writeConfigTask;
+    }
+
+    /**
      * @Description 恢复出厂设置
      */
     public OrderTask resetDevice() {

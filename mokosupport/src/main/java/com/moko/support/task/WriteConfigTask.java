@@ -31,6 +31,7 @@ public class WriteConfigTask extends OrderTask {
             case GET_CONNECTABLE:
             case GET_IBEACON_UUID:
             case GET_IBEACON_INFO:
+            case SET_CLOSE:
                 createGetConfigData(key.getConfigKey());
                 break;
         }

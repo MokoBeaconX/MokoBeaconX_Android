@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.moko.beaconx.R;
-import com.moko.beaconx.dialog.ConnectAlertDialog;
+import com.moko.beaconx.dialog.BeaconAlertDialog;
 import com.moko.beaconx.dialog.DeviceNameDialog;
 import com.moko.beaconx.dialog.ModifyPasswordDialog;
 import com.moko.beaconx.dialog.ResetDeviceDialog;
@@ -30,6 +30,8 @@ public class SettingFragment extends Fragment {
     TextView tvDeviceName;
     @Bind(R.id.iv_connectable)
     ImageView ivConnectable;
+    @Bind(R.id.iv_power)
+    ImageView ivPower;
 
     private DeviceInfoActivity activity;
 
@@ -82,7 +84,8 @@ public class SettingFragment extends Fragment {
         super.onDestroy();
     }
 
-    @OnClick({R.id.rl_device_name, R.id.rl_password, R.id.rl_update_firmware, R.id.rl_reset_facotry, R.id.iv_connectable})
+    @OnClick({R.id.rl_device_name, R.id.rl_password, R.id.rl_update_firmware, R.id.rl_reset_facotry, R.id.iv_connectable
+            , R.id.iv_power})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.rl_device_name:
@@ -150,9 +153,9 @@ public class SettingFragment extends Fragment {
                 resetDeviceDialog.show();
                 break;
             case R.id.iv_connectable:
-                final ConnectAlertDialog connectAlertDialog = new ConnectAlertDialog(activity);
+                final BeaconAlertDialog connectAlertDialog = new BeaconAlertDialog(activity);
                 connectAlertDialog.setData(isConneacted ? "Are you sure to make device disconnectable?" : "Are you sure to make device connectable?");
-                connectAlertDialog.setConnectAlertClickListener(new ConnectAlertDialog.ConnectAlertClickListener() {
+                connectAlertDialog.setConnectAlertClickListener(new BeaconAlertDialog.ConnectAlertClickListener() {
                     @Override
                     public void onEnsureClicked() {
                         isConneacted = !isConneacted;
@@ -165,6 +168,21 @@ public class SettingFragment extends Fragment {
                     }
                 });
                 connectAlertDialog.show();
+            case R.id.iv_power:
+                final BeaconAlertDialog powerAlertDialog = new BeaconAlertDialog(activity);
+                powerAlertDialog.setData("Are you sure to turn off the BeaconX?Please make sure the device has a button to turn on!");
+                powerAlertDialog.setConnectAlertClickListener(new BeaconAlertDialog.ConnectAlertClickListener() {
+                    @Override
+                    public void onEnsureClicked() {
+                        activity.setClose();
+                    }
+
+                    @Override
+                    public void onDismiss() {
+
+                    }
+                });
+                powerAlertDialog.show();
                 break;
         }
     }
@@ -183,5 +201,9 @@ public class SettingFragment extends Fragment {
         } else {
             ivConnectable.setImageResource(R.drawable.connectable_unchecked);
         }
+    }
+
+    public void setClose() {
+        ivPower.setImageResource(R.drawable.connectable_unchecked);
     }
 }

@@ -185,4 +185,36 @@
             android:layout_alignParentBottom="true" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:src="@drawable/power" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="40dp"
+            android:text="Power Off"
+            android:textColor="@color/black_333333"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/iv_power"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/connectable_checked" />
+
+        <View
+            style="@style/divider_line"
+            android:layout_alignParentBottom="true" />
+    </RelativeLayout>
+
 </LinearLayout>

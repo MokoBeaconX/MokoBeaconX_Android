@@ -9,12 +9,12 @@ import com.moko.beaconx.R;
 import butterknife.Bind;
 import butterknife.OnClick;
 
-public class ConnectAlertDialog extends BaseDialog<String> {
+public class BeaconAlertDialog extends BaseDialog<String> {
 
     @Bind(R.id.tv_connect_alert)
     TextView tvConnectAlert;
 
-    public ConnectAlertDialog(Context context) {
+    public BeaconAlertDialog(Context context) {
         super(context);
     }
 

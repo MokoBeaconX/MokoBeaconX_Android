@@ -254,6 +254,13 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                                             ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
                                         }
                                         break;
+                                    case SET_CLOSE:
+                                        if ("eb60000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                                            ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
+                                            settingFragment.setClose();
+                                            back();
+                                        }
+                                        break;
                                 }
                             }
                             break;
@@ -526,6 +533,11 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
     public void setConnectable(boolean isConneacted) {
         showSyncingProgressDialog();
         mMokoService.sendOrder(mMokoService.setConnectable(isConneacted), mMokoService.getConnectable());
+    }
+
+    public void setClose() {
+        showSyncingProgressDialog();
+        mMokoService.sendOrder(mMokoService.setClose());
     }
 
     public void chooseFirmwareFile() {
