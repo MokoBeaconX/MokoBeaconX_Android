@@ -76,6 +76,7 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
     public String mPassword;
     public String mDeviceMac;
     public String mDeviceName;
+    private boolean mIsClose;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,6 +166,9 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                     }, 1000);
                 }
                 if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
+                    if (mIsClose) {
+                        return;
+                    }
                     dismissSyncProgressDialog();
                     dismissLoadingProgressDialog();
                     if (MokoSupport.getInstance().isBluetoothOpen() && !isUpgrade) {
@@ -452,6 +456,7 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
 
     private void back() {
         MokoSupport.getInstance().disConnectBle();
+        mIsClose = false;
         setResult(RESULT_OK);
         finish();
     }
@@ -536,6 +541,7 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
     }
 
     public void setClose() {
+        mIsClose = true;
         showSyncingProgressDialog();
         mMokoService.sendOrder(mMokoService.setClose());
     }

@@ -166,8 +166,9 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         TextView tv_uuid = ButterKnife.findById(view, R.id.tv_uuid);
         TextView tv_major = ButterKnife.findById(view, R.id.tv_major);
         TextView tv_minor = ButterKnife.findById(view, R.id.tv_minor);
-        tv_tx_power.setText(String.format("RSSI@1m:-%sdBm", iBeacon.rangingData));
-        tv_uuid.setText(iBeacon.uuid);
+        tv_tx_power.setText("0".equals(iBeacon.rangingData) ? String.format("RSSI@1m:%sdBm", iBeacon.rangingData) :
+                String.format("RSSI@1m:-%sdBm", iBeacon.rangingData));
+        tv_uuid.setText(iBeacon.uuid.toUpperCase());
         tv_major.setText(iBeacon.major);
         tv_minor.setText(iBeacon.minor);
         return view;
