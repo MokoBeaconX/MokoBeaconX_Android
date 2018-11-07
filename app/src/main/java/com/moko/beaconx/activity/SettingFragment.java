@@ -168,6 +168,7 @@ public class SettingFragment extends Fragment {
                     }
                 });
                 connectAlertDialog.show();
+                break;
             case R.id.iv_power:
                 final BeaconAlertDialog powerAlertDialog = new BeaconAlertDialog(activity);
                 powerAlertDialog.setData("Are you sure to turn off the BeaconX?Please make sure the device has a button to turn on!");

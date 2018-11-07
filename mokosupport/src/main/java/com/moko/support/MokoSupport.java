@@ -446,7 +446,6 @@ public class MokoSupport implements MokoResponseCallback {
                 case advInterval:
                 case radioTxPower:
                 case advTxPower:
-                case lockState:
                 case unLock:
                 case advSlotData:
                 case resetDevice:
