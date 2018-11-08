@@ -406,6 +406,11 @@ public class MokoSupport implements MokoResponseCallback {
     @Override
     public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic, byte[] value) {
         if (isSyncData()) {
+            int key = value[1] & 0xff;
+            if (key == 0x63) {
+                LogModule.i("状态发生改变");
+                return;
+            }
             // 非延时应答
             OrderTask orderTask = mQueue.peek();
             if (value != null && value.length > 0) {

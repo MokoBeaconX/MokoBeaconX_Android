@@ -30,6 +30,7 @@ import android.widget.Toast;
 
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
+import com.moko.beaconx.entity.ValidParams;
 import com.moko.beaconx.service.DfuService;
 import com.moko.beaconx.service.MokoService;
 import com.moko.beaconx.utils.FileUtils;
@@ -77,12 +78,15 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
     public String mDeviceMac;
     public String mDeviceName;
     private boolean mIsClose;
+    private ValidParams validParams;
+    private int validCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_info);
         ButterKnife.bind(this);
+        validParams = new ValidParams();
         mPassword = getIntent().getStringExtra(AppConstants.EXTRA_KEY_PASSWORD);
         Intent intent = new Intent(this, MokoService.class);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
@@ -136,6 +140,7 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
         if (mMokoService == null) {
             return;
         }
+        validParams.reset();
         mMokoService.sendOrder(mMokoService.getDeviceMac(),
                 mMokoService.getDeviceName(), mMokoService.getConnectable(),
                 mMokoService.getManufacturer(), mMokoService.getDeviceModel(),
@@ -196,6 +201,13 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                 }
                 if (MokoConstants.ACTION_RESPONSE_FINISH.equals(action)) {
                     dismissSyncProgressDialog();
+                    if (validParams.isEmpty() && validCount < 2) {
+                        validCount++;
+                        showSyncingProgressDialog();
+                        getDeviceInfo();
+                    } else {
+                        validCount = 0;
+                    }
                 }
                 if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
                     OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
@@ -223,6 +235,7 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                                             String macShow = String.format("%s:%s:%s:%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 6), mac.substring(6, 8), mac.substring(8, 10), mac.substring(10, 12));
                                             deviceFragment.setDeviceMac(macShow);
                                             mDeviceMac = macShow;
+                                            validParams.mac = macShow;
                                         }
                                         break;
                                     case GET_DEVICE_NAME:
@@ -231,11 +244,13 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                                             String deviceName = MokoUtils.hex2String(valueStr.substring(8, valueStr.length()));
                                             settingFragment.setDeviceName(deviceName);
                                             mDeviceName = deviceName;
+                                            validParams.name = deviceName;
                                         }
                                         break;
                                     case GET_CONNECTABLE:
                                         if (value.length >= 5) {
                                             settingFragment.setConnectable(value);
+                                            validParams.connectable = MokoUtils.byte2HexString(value[4]);
                                         }
                                         break;
                                     case GET_IBEACON_UUID:
@@ -270,24 +285,31 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                             break;
                         case manufacturer:
                             deviceFragment.setManufacturer(value);
+                            validParams.manufacture = "1";
                             break;
                         case deviceModel:
                             deviceFragment.setDeviceModel(value);
+                            validParams.productModel = "1";
                             break;
                         case productDate:
                             deviceFragment.setProductDate(value);
+                            validParams.manufactureDate = "1";
                             break;
                         case hardwareVersion:
                             deviceFragment.setHardwareVersion(value);
+                            validParams.hardwareVersion = "1";
                             break;
                         case firmwareVersion:
                             deviceFragment.setFirmwareVersion(value);
+                            validParams.firmwareVersion = "1";
                             break;
                         case softwareVersion:
                             deviceFragment.setSoftwareVersion(value);
+                            validParams.softwareVersion = "1";
                             break;
                         case battery:
                             deviceFragment.setBattery(value);
+                            validParams.battery = "1";
                             break;
                         case advSlotData:
                             if (value.length >= 1) {
@@ -509,9 +531,13 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                 break;
             case R.id.radioBtn_setting:
                 showSettingFragment();
+                showSyncingProgressDialog();
+                getDeviceInfo();
                 break;
             case R.id.radioBtn_device:
                 showDeviceFragment();
+                showSyncingProgressDialog();
+                getDeviceInfo();
                 break;
         }
     }
