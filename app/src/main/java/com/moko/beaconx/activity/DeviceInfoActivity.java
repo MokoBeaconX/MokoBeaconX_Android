@@ -366,7 +366,6 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                             break;
                         case resetDevice:
                             ToastUtils.showToast(DeviceInfoActivity.this, "Reset successfully!");
-                            back();
                             break;
                     }
                 }

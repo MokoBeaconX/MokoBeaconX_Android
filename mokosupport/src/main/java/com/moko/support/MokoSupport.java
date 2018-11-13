@@ -109,6 +109,9 @@ public class MokoSupport implements MokoResponseCallback {
                     mokoConnStateCallback.onConnectSuccess();
                     break;
                 case HANDLER_MESSAGE_WHAT_DISCONNECT:
+                    if (mQueue != null && !mQueue.isEmpty()) {
+                        mQueue.clear();
+                    }
                     if (mBluetoothGatt != null) {
                         if (refreshDeviceCache()) {
                             LogModule.i("清理GATT层蓝牙缓存");
@@ -407,7 +410,7 @@ public class MokoSupport implements MokoResponseCallback {
     public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic, byte[] value) {
         if (isSyncData()) {
             int key = value[1] & 0xff;
-            if (key == 0x63) {
+            if (key == 0x63 && value[4] != 0) {
                 LogModule.i("状态发生改变");
                 return;
             }
