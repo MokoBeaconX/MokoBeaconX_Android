@@ -157,9 +157,10 @@ Custom device information
 | `WriteConfigTask`|WRITE_NO_RESPONSE|Write `ConfigKeyEnum.GET_DEVICE_MAC`，get MAC address.
 | `WriteConfigTask`|WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_DEVICE_NAME`，get device name.
 |`WriteConfigTask`|WRITE_NO_RESPONSE|Call`setDeviceName(String deviceName)`，set device name（The length of the name cannot be more than 8）.
-|`WriteConfigTask`|WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_CONNECTABLE`，get evice connection status; 01:Connectable; 00：Unconnectable.
+|`WriteConfigTask`|WRITE_NO_RESPONSE|Write`ConfigKeyEnum.GET_CONNECTABLE`，get device connection status; 01:Connectable; 00：Unconnectable.
 |`WriteConfigTask`|WRITE_NO_RESPONSE|Call`setConnectable(boolean isConnectable)`，Set the connection status.
 |`ResetDeviceTask` |WRITE|Reset
+|`WriteConfigTask`|WRITE_NO_RESPONSE|Write`ConfigKeyEnum.SET_CLOSE`，close the device.
 
 
 
