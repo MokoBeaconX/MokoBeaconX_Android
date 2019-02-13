@@ -28,12 +28,15 @@ import com.moko.support.utils.BleConnectionCompat;
 import com.moko.support.utils.MokoUtils;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
+import no.nordicsemi.android.support.v18.scanner.ScanFilter;
 import no.nordicsemi.android.support.v18.scanner.ScanSettings;
 
 /**
@@ -181,8 +184,9 @@ public class MokoSupport implements MokoResponseCallback {
         ScanSettings settings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
+        List<ScanFilter> filters = Collections.singletonList(new ScanFilter.Builder().build());
         mMokoLeScanHandler = new MokoLeScanHandler(mokoScanDeviceCallback);
-        scanner.startScan(null, settings, mMokoLeScanHandler);
+        scanner.startScan(filters, settings, mMokoLeScanHandler);
         mMokoScanDeviceCallback = mokoScanDeviceCallback;
         mokoScanDeviceCallback.onStartScan();
     }
