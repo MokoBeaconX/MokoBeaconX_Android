@@ -509,7 +509,12 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
 
                 @Override
                 public void run() {
-                    dialog.showKeyboard();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dialog.showKeyboard();
+                        }
+                    });
                 }
             }, 200);
         }
