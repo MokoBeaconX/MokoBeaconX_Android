@@ -107,7 +107,12 @@ public class SettingFragment extends Fragment {
 
                     @Override
                     public void run() {
-                        dialog.showKeyboard();
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                dialog.showKeyboard();
+                            }
+                        });
                     }
                 }, 200);
                 break;
@@ -130,7 +135,12 @@ public class SettingFragment extends Fragment {
 
                     @Override
                     public void run() {
-                        modifyPasswordDialog.showKeyboard();
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                modifyPasswordDialog.showKeyboard();
+                            }
+                        });
                     }
                 }, 200);
                 break;
