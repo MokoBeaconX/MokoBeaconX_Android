@@ -39,9 +39,15 @@ public class FileUtils {
             else if (isDownloadsDocument(uri)) {
 
                 final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-
+                if (id.startsWith("raw:")) {
+                    final String path = id.replaceFirst("raw:", "");
+                    return path;
+                }
+                Uri contentUri = uri;
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                    contentUri = ContentUris.withAppendedId(
+                            Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+                }
                 return getDataColumn(context, contentUri, null, null);
             }
             // MediaProvider
@@ -67,6 +73,13 @@ public class FileUtils {
         }
         // MediaStore (and general)
         else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            //判断QQ文件管理器
+            if (isQQMediaDocument(uri)) {
+                String path = uri.getPath();
+                File fileDir = Environment.getExternalStorageDirectory();
+                File file = new File(fileDir, path.substring("/QQBrowser".length(), path.length()));
+                return file.exists() ? file.toString() : null;
+            }
             return getDataColumn(context, uri, null, null);
         }
         // File
@@ -165,4 +178,15 @@ public class FileUtils {
 //            throw e;
 //        }
 //    }
+
+    /**
+     * 使用第三方qq文件管理器打开
+     *
+     * @param uri
+     *
+     * @return
+     */
+    public static boolean isQQMediaDocument(Uri uri) {
+        return "com.tencent.mtt.fileprovider".equals(uri.getAuthority());
+    }
 }
