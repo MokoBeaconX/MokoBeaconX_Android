@@ -1,12 +1,17 @@
 package com.moko.beaconx.utils;
 
+import android.os.ParcelUuid;
+import android.text.TextUtils;
+
 import com.moko.beaconx.entity.BeaconXInfo;
 import com.moko.support.entity.DeviceInfo;
 import com.moko.support.service.DeviceInfoParseable;
 import com.moko.support.utils.MokoUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
+
+import no.nordicsemi.android.support.v18.scanner.ScanRecord;
 
 /**
  * @Date 2018/1/16
@@ -19,23 +24,40 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
 
     @Override
     public BeaconXInfo parseDeviceInfo(DeviceInfo deviceInfo) {
-        byte[] scanRecord = MokoUtils.hex2bytes(deviceInfo.scanRecord);
+        ScanRecord scanRecord = deviceInfo.scanRecord;
+        String unanalysedData = null;
         // filter
         boolean isEddystone = false;
         boolean isBeacon = false;
         boolean isDeviceInfo = false;
-        int length = 0;
-        if (((int) scanRecord[5] & 0xff) == 0xAA && ((int) scanRecord[6] & 0xff) == 0xFE) {
-            length = (int) scanRecord[7];
-            isEddystone = true;
-        }
-        if (((int) scanRecord[5] & 0xff) == 0x20 && ((int) scanRecord[6] & 0xff) == 0xFF) {
-            length = (int) scanRecord[3];
-            isBeacon = true;
-        }
-        if (((int) scanRecord[5] & 0xff) == 0x10 && ((int) scanRecord[6] & 0xff) == 0xFF) {
-            length = (int) scanRecord[3];
-            isDeviceInfo = true;
+
+        Map<ParcelUuid, byte[]> map = scanRecord.getServiceData();
+        if (map != null && !map.isEmpty()) {
+            for (ParcelUuid uuid : map.keySet()) {
+                String serviceDataUuid = uuid.getUuid().toString().toLowerCase();
+                if (TextUtils.isEmpty(serviceDataUuid)) {
+                    continue;
+                }
+                String serviceData = MokoUtils.bytesToHexString(scanRecord.getServiceData(uuid));
+                if (TextUtils.isEmpty(serviceData)) {
+                    continue;
+                }
+                if (serviceDataUuid.contains("feaa")) {
+                    unanalysedData = serviceData;
+                    isEddystone = true;
+                    continue;
+                }
+                if (serviceDataUuid.contains("ff10")) {
+                    unanalysedData = serviceData;
+                    isDeviceInfo = true;
+                    continue;
+                }
+                if (serviceDataUuid.contains("ff20")) {
+                    unanalysedData = serviceData;
+                    isBeacon = true;
+                    continue;
+                }
+            }
         }
         if (!isEddystone && !isBeacon && !isDeviceInfo) {
             return null;
@@ -45,37 +67,28 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
         if (beaconXInfoHashMap.containsKey(deviceInfo.mac)) {
             beaconXInfo = beaconXInfoHashMap.get(deviceInfo.mac);
             beaconXInfo.rssi = deviceInfo.rssi;
-            beaconXInfo.scanRecord = deviceInfo.scanRecord;
         } else {
             beaconXInfo = new BeaconXInfo();
             beaconXInfo.name = deviceInfo.name;
             beaconXInfo.mac = deviceInfo.mac;
             beaconXInfo.rssi = deviceInfo.rssi;
-            beaconXInfo.scanRecord = deviceInfo.scanRecord;
             beaconXInfo.validDataHashMap = new HashMap<>();
             beaconXInfoHashMap.put(deviceInfo.mac, beaconXInfo);
         }
-        String data = null;
-        if (isBeacon || isDeviceInfo) {
-            data = MokoUtils.bytesToHexString(Arrays.copyOfRange(scanRecord, 7, length + 4));
-        }
-        if (isEddystone) {
-            data = MokoUtils.bytesToHexString(Arrays.copyOfRange(scanRecord, 11, length + 8));
-        }
-        if (beaconXInfo.validDataHashMap.containsKey(data)) {
+        if (beaconXInfo.validDataHashMap.containsKey(unanalysedData)) {
             return beaconXInfo;
         } else {
             BeaconXInfo.ValidData validData = new BeaconXInfo.ValidData();
-            validData.data = data;
+            validData.data = unanalysedData;
             if (isBeacon) {
                 validData.type = BeaconXInfo.VALID_DATA_FRAME_TYPE_IBEACON;
             }
             if (isDeviceInfo) {
                 validData.type = BeaconXInfo.VALID_DATA_FRAME_TYPE_INFO;
-                beaconXInfo.name = MokoUtils.hex2String(data.substring(22, data.length()));
+                beaconXInfo.name = MokoUtils.hex2String(unanalysedData.substring(22));
             }
             if (isEddystone) {
-                String frameType = data.substring(0, 2);
+                String frameType = unanalysedData.substring(0, 2);
                 if ("00".equals(frameType)) {
                     // UID
                     validData.type = BeaconXInfo.VALID_DATA_FRAME_TYPE_UID;
@@ -89,7 +102,7 @@ public class BeaconXInfoParseableImpl implements DeviceInfoParseable<BeaconXInfo
                     return beaconXInfo;
                 }
             }
-            beaconXInfo.validDataHashMap.put(data, validData);
+            beaconXInfo.validDataHashMap.put(unanalysedData, validData);
         }
         return beaconXInfo;
     }

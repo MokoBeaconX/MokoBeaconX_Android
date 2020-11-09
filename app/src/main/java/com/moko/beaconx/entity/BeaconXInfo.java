@@ -21,7 +21,6 @@ public class BeaconXInfo implements Serializable {
     public String name;
     public int rssi;
     public String mac;
-    public String scanRecord;
     public HashMap<String, ValidData> validDataHashMap;
 
     @Override
