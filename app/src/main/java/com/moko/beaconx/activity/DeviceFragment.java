@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.moko.beaconx.R;
-import com.moko.support.log.LogModule;
 import com.moko.support.utils.MokoUtils;
 
 import butterknife.Bind;

@@ -20,6 +20,10 @@ public class AppConstants {
     public static final int REQUEST_CODE_SLOT_DATA = 100;
     public static final int REQUEST_CODE_DEVICE_INFO = 0x10;
 
+    public static final int REQUEST_CODE_PERMISSION = 120;
+    public static final int REQUEST_CODE_PERMISSION_2 = 121;
+    public static final int REQUEST_CODE_LOCATION_SETTINGS = 122;
+    public static final int PERMISSION_REQUEST_CODE = 1;
     // result_code
     public static final int RESULT_CONN_DISCONNECTED = 2;
 }

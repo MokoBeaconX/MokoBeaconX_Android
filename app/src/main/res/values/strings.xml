@@ -6,12 +6,26 @@
     <string name="please_enter_password">Please enter password</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="confirm">Confirm</string>
     <string name="password_null">Password cannot be empty!</string>
     <string name="device_name_null">The device name cannot be empty!</string>
     <string name="password_length">Length should be 8 bits</string>
     <string name="options_title">Options</string>
     <string name="setting_title">Setting</string>
     <string name="device_title">Device info</string>
+    <string name="setting_syncing">syncing</string>
+
+    <string name="permission_storage_close_title">Storage permission is not available</string>
+    <string name="permission_storage_close_content">Please find it in cellphone setting- permission, and allow MokoBeaconX use the Storage permission</string>
+    <string name="permission_open">OK</string>
+    <string name="permission_storage_need_title">Please turn on Storage permissions</string>
+    <string name="permission_storage_need_content">MokoBeaconX requires access to Location and Storage permission. If the permissions are not on, MokoBeaconX cannot be used normally.</string>
+    <string name="location_need_title">Turn on Location permission</string>
+    <string name="location_need_content">After that, MokoBeaconX could search and connect with the Device</string>
+    <string name="permission_location_close_title">Location persission is not available</string>
+    <string name="permission_location_close_content">Please find it in cellphone setting- permission, and allow MokoBeaconX use the Location and Storage permission</string>
+    <string name="permission_location_need_title">Turn on Location permission</string>
+    <string name="permission_location_need_content">After that, MokoBeaconX could search and connect with the Device</string>
     <string-array name="slot_type">
         <item>TLM</item>
         <item>UID</item>

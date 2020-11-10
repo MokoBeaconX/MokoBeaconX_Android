@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class AdvIntervalTask extends OrderTask {
 
     public byte[] data;
 
-    public AdvIntervalTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.advInterval, callback, responseType);
+    public AdvIntervalTask(int responseType) {
+        super(OrderType.advInterval, responseType);
     }
 
     @Override

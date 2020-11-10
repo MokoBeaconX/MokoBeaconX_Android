@@ -1,17 +1,16 @@
 package com.moko.beaconx.adapter;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.BaseViewHolder;
 import com.moko.beaconx.R;
 import com.moko.beaconx.entity.BeaconXDevice;
 import com.moko.beaconx.entity.BeaconXInfo;
@@ -26,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import butterknife.Bind;
 import butterknife.ButterKnife;
 
 /**
@@ -35,35 +33,23 @@ import butterknife.ButterKnife;
  * @Description
  * @ClassPath com.moko.beaconx.adapter.BeaconXListAdapter
  */
-public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
+public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHolder> {
 
-    public BeaconXListAdapter(Context context) {
-        super(context);
+    public BeaconXListAdapter() {
+        super(R.layout.list_item_device);
     }
 
     @Override
-    protected void bindViewHolder(int position, ViewHolder viewHolder, View convertView, ViewGroup parent) {
-        final DeviceViewHolder holder = (DeviceViewHolder) viewHolder;
-        final BeaconXInfo device = getItem(position);
-        setView(holder, device);
-    }
-
-    private void setView(DeviceViewHolder holder, final BeaconXInfo device) {
-        holder.tvName.setText(TextUtils.isEmpty(device.name) ? "N/A" : device.name);
-        holder.tvMac.setText("MAC:" + device.mac);
-        holder.tvRssi.setText(device.rssi + "");
-        holder.tvConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (listener != null) {
-                    listener.onConnectClick(device);
-                }
-            }
-        });
-        holder.tvConnState.setText("");
-        LogModule.i(device.toString());
-        holder.llData.removeAllViews();
-        ArrayList<BeaconXInfo.ValidData> validDatas = new ArrayList<>(device.validDataHashMap.values());
+    protected void convert(BaseViewHolder helper, BeaconXInfo item) {
+        helper.setText(R.id.tv_name, TextUtils.isEmpty(item.name) ? "N/A" : item.name);
+        helper.setText(R.id.tv_mac, "MAC:" + item.mac);
+        helper.setText(R.id.tv_rssi, item.rssi + "");
+        helper.addOnClickListener(R.id.tv_connect);
+        helper.setText(R.id.tv_conn_state, "");
+        LogModule.i(item.toString());
+        LinearLayout llData = helper.getView(R.id.ll_data);
+        llData.removeAllViews();
+        ArrayList<BeaconXInfo.ValidData> validDatas = new ArrayList<>(item.validDataHashMap.values());
         Collections.sort(validDatas, new Comparator<BeaconXInfo.ValidData>() {
             @Override
             public int compare(BeaconXInfo.ValidData lhs, BeaconXInfo.ValidData rhs) {
@@ -78,44 +64,45 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         for (BeaconXInfo.ValidData validData : validDatas) {
             LogModule.i(validData.toString());
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_UID) {
-                holder.llData.addView(createUIDView(BeaconXParser.getUID(validData.data)));
+                llData.addView(createUIDView(BeaconXParser.getUID(validData.data)));
             }
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_URL) {
-                holder.llData.addView(createURLView(BeaconXParser.getURL(validData.data)));
+                llData.addView(createURLView(BeaconXParser.getURL(validData.data)));
             }
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_TLM) {
-                holder.llData.addView(createTLMView(BeaconXParser.getTLM(validData.data)));
+                llData.addView(createTLMView(BeaconXParser.getTLM(validData.data)));
             }
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_IBEACON) {
-                holder.llData.addView(createiBeaconView(BeaconXParser.getiBeacon(validData.data)));
+                llData.addView(createiBeaconView(BeaconXParser.getiBeacon(validData.data)));
             }
             if (validData.type == BeaconXInfo.VALID_DATA_FRAME_TYPE_INFO) {
                 BeaconXDevice beaconXDevice = BeaconXParser.getDevice(validData.data);
                 int battery = Integer.parseInt(beaconXDevice.battery);
                 if (battery >= 0 && battery <= 20) {
-                    holder.ivBattery.setImageResource(R.drawable.battery_5);
+                    helper.setImageResource(R.id.iv_battery, R.drawable.battery_5);
                 }
                 if (battery > 20 && battery <= 40) {
-                    holder.ivBattery.setImageResource(R.drawable.battery_4);
+                    helper.setImageResource(R.id.iv_battery, R.drawable.battery_4);
                 }
                 if (battery > 40 && battery <= 60) {
-                    holder.ivBattery.setImageResource(R.drawable.battery_3);
+                    helper.setImageResource(R.id.iv_battery, R.drawable.battery_3);
                 }
                 if (battery > 60 && battery <= 80) {
-                    holder.ivBattery.setImageResource(R.drawable.battery_2);
+                    helper.setImageResource(R.id.iv_battery, R.drawable.battery_2);
                 }
                 if (battery > 80 && battery <= 100) {
-                    holder.ivBattery.setImageResource(R.drawable.battery_1);
+                    helper.setImageResource(R.id.iv_battery, R.drawable.battery_1);
                 }
                 if (Integer.parseInt(beaconXDevice.isConnected) == 0) {
-                    holder.tvConnState.setText("UNCON");
+                    helper.setText(R.id.tv_conn_state, "UNCON");
                 } else {
-                    holder.tvConnState.setText("CON");
+                    helper.setText(R.id.tv_conn_state, "CON");
                 }
                 LogModule.i(beaconXDevice.toString());
             }
         }
     }
+
 
     private View createUIDView(BeaconXUID uid) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.beaconx_uid, null);
@@ -172,43 +159,5 @@ public class BeaconXListAdapter extends MokoBaseAdapter<BeaconXInfo> {
         tv_major.setText(iBeacon.major);
         tv_minor.setText(iBeacon.minor);
         return view;
-    }
-
-    @Override
-    protected ViewHolder createViewHolder(int position, LayoutInflater inflater, ViewGroup parent) {
-        final View convertView = inflater.inflate(R.layout.list_item_device, parent, false);
-        return new DeviceViewHolder(convertView);
-    }
-
-    public void setListener(OnConnectListener listener) {
-        this.listener = listener;
-    }
-
-    static class DeviceViewHolder extends ViewHolder {
-        @Bind(R.id.tv_name)
-        TextView tvName;
-        @Bind(R.id.tv_rssi)
-        TextView tvRssi;
-        @Bind(R.id.tv_conn_state)
-        TextView tvConnState;
-        @Bind(R.id.tv_connect)
-        TextView tvConnect;
-        @Bind(R.id.iv_battery)
-        ImageView ivBattery;
-        @Bind(R.id.tv_mac)
-        TextView tvMac;
-        @Bind(R.id.ll_data)
-        LinearLayout llData;
-
-        public DeviceViewHolder(View convertView) {
-            super(convertView);
-            ButterKnife.bind(this, convertView);
-        }
-    }
-
-    private OnConnectListener listener;
-
-    public interface OnConnectListener {
-        void onConnectClick(BeaconXInfo beaconXInfo);
     }
 }

@@ -1,21 +1,16 @@
 package com.moko.beaconx.activity;
 
 
-import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.IdRes;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
@@ -30,21 +25,32 @@ import android.widget.Toast;
 
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
+import com.moko.beaconx.dialog.AlertMessageDialog;
+import com.moko.beaconx.dialog.LoadingDialog;
+import com.moko.beaconx.dialog.LoadingMessageDialog;
 import com.moko.beaconx.entity.ValidParams;
 import com.moko.beaconx.service.DfuService;
-import com.moko.beaconx.service.MokoService;
 import com.moko.beaconx.utils.FileUtils;
 import com.moko.beaconx.utils.ToastUtils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
+import com.moko.support.OrderTaskAssembler;
 import com.moko.support.entity.ConfigKeyEnum;
 import com.moko.support.entity.OrderType;
+import com.moko.support.event.ConnectStatusEvent;
+import com.moko.support.event.OrderTaskResponseEvent;
 import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTask;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -67,7 +73,6 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
     RadioButton radioBtnDevice;
     @Bind(R.id.rg_options)
     RadioGroup rgOptions;
-    public MokoService mMokoService;
     @Bind(R.id.tv_title)
     TextView tvTitle;
     private FragmentManager fragmentManager;
@@ -88,68 +93,284 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
         ButterKnife.bind(this);
         validParams = new ValidParams();
         mPassword = getIntent().getStringExtra(AppConstants.EXTRA_KEY_PASSWORD);
-        Intent intent = new Intent(this, MokoService.class);
-        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
         fragmentManager = getFragmentManager();
         showDeviceFragment();
         showSettingFragment();
         showSlotFragment();
         rgOptions.setOnCheckedChangeListener(this);
         radioBtnSlot.setChecked(true);
+
+        EventBus.getDefault().register(this);
+        // 注册广播接收器
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mReceiver, filter);
+        if (!MokoSupport.getInstance().isBluetoothOpen()) {
+            // 蓝牙未打开，开启蓝牙
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
+        } else {
+            getSlotType();
+            getDeviceInfo();
+        }
     }
 
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mMokoService = ((MokoService.LocalBinder) service).getService();
-            // 注册广播接收器
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(MokoConstants.ACTION_CONNECT_SUCCESS);
-            filter.addAction(MokoConstants.ACTION_CONNECT_DISCONNECTED);
-            filter.addAction(MokoConstants.ACTION_RESPONSE_SUCCESS);
-            filter.addAction(MokoConstants.ACTION_RESPONSE_TIMEOUT);
-            filter.addAction(MokoConstants.ACTION_RESPONSE_FINISH);
-            filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-            filter.setPriority(200);
-            registerReceiver(mReceiver, filter);
-            if (!MokoSupport.getInstance().isBluetoothOpen()) {
-                // 蓝牙未打开，开启蓝牙
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
-            } else {
-                getSlotType();
-                getDeviceInfo();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-        }
-    };
-
     public void getSlotType() {
-        if (mMokoService == null) {
-            return;
-        }
-        showSyncingProgressDialog();
-        mMokoService.sendOrder(mMokoService.getSlotType());
+        showLoadingProgressDialog();
+        MokoSupport.getInstance().sendOrder(OrderTaskAssembler.getSlotType());
     }
 
     private void getDeviceInfo() {
-        if (mMokoService == null) {
-            return;
-        }
         validParams.reset();
-        mMokoService.sendOrder(mMokoService.getDeviceMac(),
-                mMokoService.getDeviceName(), mMokoService.getConnectable(),
-                mMokoService.getManufacturer(), mMokoService.getDeviceModel(),
-                mMokoService.getProductDate(), mMokoService.getHardwareVersion(),
-                mMokoService.getFirmwareVersion(), mMokoService.getSoftwareVersion(),
-                mMokoService.getBattery());
+        List<OrderTask> orderTasks = new ArrayList<>();
+        orderTasks.add(OrderTaskAssembler.getDeviceMac());
+        orderTasks.add(OrderTaskAssembler.getDeviceName());
+        orderTasks.add(OrderTaskAssembler.getConnectable());
+        orderTasks.add(OrderTaskAssembler.getManufacturer());
+        orderTasks.add(OrderTaskAssembler.getDeviceModel());
+        orderTasks.add(OrderTaskAssembler.getProductDate());
+        orderTasks.add(OrderTaskAssembler.getHardwareVersion());
+        orderTasks.add(OrderTaskAssembler.getFirmwareVersion());
+        orderTasks.add(OrderTaskAssembler.getSoftwareVersion());
+        orderTasks.add(OrderTaskAssembler.getBattery());
+        MokoSupport.getInstance().sendOrder(orderTasks.toArray(new OrderTask[]{}));
+    }
+
+    @Subscribe(threadMode = ThreadMode.POSTING, priority = 100)
+    public void onConnectStatusEvent(ConnectStatusEvent event) {
+        EventBus.getDefault().cancelEventDelivery(event);
+        final String action = event.getAction();
+        runOnUiThread(() -> {
+            if (MokoConstants.ACTION_CONN_STATUS_DISCONNECTED.equals(action)) {
+                if (mIsClose) {
+                    return;
+                }
+                dismissLoadingProgressDialog();
+                dismissLoadingMessageDialog();
+                if (MokoSupport.getInstance().isBluetoothOpen() && !isUpgrade) {
+                    AlertMessageDialog dialog = new AlertMessageDialog();
+                    dialog.setTitle("Dismiss");
+                    dialog.setMessage("The device disconnected!");
+                    dialog.setConfirm("Reconnect");
+                    dialog.setCancel("Exit");
+                    dialog.setOnAlertConfirmListener(() -> {
+                        MokoSupport.getInstance().connDevice(DeviceInfoActivity.this, mDeviceMac);
+                        showLoadingProgressDialog();
+                    });
+                    dialog.setOnAlertCancelListener(() -> {
+                        back();
+                    });
+                    dialog.show(getSupportFragmentManager());
+                }
+            }
+            if (MokoConstants.ACTION_DISCOVER_SUCCESS.equals(action)) {
+                dismissLoadingProgressDialog();
+                showLoadingMessageDialog();
+                tvTitle.postDelayed(() -> {
+                    MokoSupport.getInstance().sendOrder(OrderTaskAssembler.getLockState());
+                }, 500);
+
+            }
+        });
     }
 
     private String unLockResponse;
+
+    @Subscribe(threadMode = ThreadMode.POSTING, priority = 100)
+    public void onOrderTaskResponseEvent(OrderTaskResponseEvent event) {
+        EventBus.getDefault().cancelEventDelivery(event);
+        final String action = event.getAction();
+        runOnUiThread(() -> {
+            if (MokoConstants.ACTION_CURRENT_DATA.equals(action)) {
+                OrderTaskResponse response = event.getResponse();
+                OrderType orderType = response.orderType;
+                int responseType = response.responseType;
+                byte[] value = response.responseValue;
+                switch (orderType) {
+                    case notifyConfig:
+                        String valueHexStr = MokoUtils.bytesToHexString(value);
+                        if ("eb63000100".equals(valueHexStr.toLowerCase())) {
+                            ToastUtils.showToast(DeviceInfoActivity.this, "Device Locked!");
+                            back();
+                        }
+                        break;
+                }
+            }
+            if (MokoConstants.ACTION_ORDER_TIMEOUT.equals(action)) {
+            }
+            if (MokoConstants.ACTION_ORDER_FINISH.equals(action)) {
+                dismissLoadingProgressDialog();
+                if (validParams.isEmpty() && validCount < 2) {
+                    validCount++;
+                    showLoadingProgressDialog();
+                    getDeviceInfo();
+                } else {
+                    validCount = 0;
+                }
+            }
+            if (MokoConstants.ACTION_ORDER_RESULT.equals(action)) {
+                OrderTaskResponse response = event.getResponse();
+                OrderType orderType = response.orderType;
+                int responseType = response.responseType;
+                byte[] value = response.responseValue;
+                switch (orderType) {
+                    case writeConfig:
+                        if (value.length >= 2) {
+                            int key = value[1] & 0xff;
+                            ConfigKeyEnum configKeyEnum = ConfigKeyEnum.fromConfigKey(key);
+                            if (configKeyEnum == null) {
+                                return;
+                            }
+                            switch (configKeyEnum) {
+                                case GET_SLOT_TYPE:
+                                    if (value.length >= 9) {
+                                        slotFragment.updateSlotType(value);
+                                    }
+                                    break;
+                                case GET_DEVICE_MAC:
+                                    if (value.length >= 10) {
+                                        String valueStr = MokoUtils.bytesToHexString(value);
+                                        String mac = valueStr.substring(8, valueStr.length()).toUpperCase();
+                                        String macShow = String.format("%s:%s:%s:%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 6), mac.substring(6, 8), mac.substring(8, 10), mac.substring(10, 12));
+                                        deviceFragment.setDeviceMac(macShow);
+                                        mDeviceMac = macShow;
+                                        validParams.mac = macShow;
+                                    }
+                                    break;
+                                case GET_DEVICE_NAME:
+                                    if (value.length >= 4) {
+                                        String valueStr = MokoUtils.bytesToHexString(value);
+                                        String deviceName = MokoUtils.hex2String(valueStr.substring(8, valueStr.length()));
+                                        settingFragment.setDeviceName(deviceName);
+                                        mDeviceName = deviceName;
+                                        validParams.name = deviceName;
+                                    }
+                                    break;
+                                case GET_CONNECTABLE:
+                                    if (value.length >= 5) {
+                                        settingFragment.setConnectable(value);
+                                        validParams.connectable = MokoUtils.byte2HexString(value[4]);
+                                    }
+                                    break;
+                                case GET_IBEACON_UUID:
+                                    if (value.length >= 20) {
+                                        slotFragment.setiBeaconUUID(value);
+                                    }
+                                    break;
+                                case GET_IBEACON_INFO:
+                                    if (value.length >= 9) {
+                                        slotFragment.setiBeaconInfo(value);
+                                    }
+                                    break;
+                                case SET_DEVICE_NAME:
+                                    if ("eb58000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                                        ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
+                                    }
+                                    break;
+                                case SET_CONNECTABLE:
+                                    if ("eb62000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                                        ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
+                                    }
+                                    break;
+                                case SET_CLOSE:
+                                    if ("eb60000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
+                                        ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
+                                        settingFragment.setClose();
+                                        back();
+                                    }
+                                    break;
+                            }
+                        }
+                        break;
+                    case manufacturer:
+                        deviceFragment.setManufacturer(value);
+                        validParams.manufacture = "1";
+                        break;
+                    case deviceModel:
+                        deviceFragment.setDeviceModel(value);
+                        validParams.productModel = "1";
+                        break;
+                    case productDate:
+                        deviceFragment.setProductDate(value);
+                        validParams.manufactureDate = "1";
+                        break;
+                    case hardwareVersion:
+                        deviceFragment.setHardwareVersion(value);
+                        validParams.hardwareVersion = "1";
+                        break;
+                    case firmwareVersion:
+                        deviceFragment.setFirmwareVersion(value);
+                        validParams.firmwareVersion = "1";
+                        break;
+                    case softwareVersion:
+                        deviceFragment.setSoftwareVersion(value);
+                        validParams.softwareVersion = "1";
+                        break;
+                    case battery:
+                        deviceFragment.setBattery(value);
+                        validParams.battery = "1";
+                        break;
+                    case advSlotData:
+                        if (value.length >= 1) {
+                            slotFragment.setSlotData(value);
+                        }
+                        break;
+                    case radioTxPower:
+                        if (value.length >= 1) {
+                            slotFragment.setTxPower(value);
+                        }
+                        break;
+                    case advInterval:
+                        if (value.length >= 2) {
+                            slotFragment.setAdvInterval(value);
+                        }
+                        break;
+                    case lockState:
+                        String valueStr = MokoUtils.bytesToHexString(value);
+                        if ("eb63000100".equals(valueStr.toLowerCase())) {
+                            // 设备上锁
+                            if (isModifyPassword) {
+                                isModifyPassword = false;
+                                dismissLoadingProgressDialog();
+                                ToastUtils.showToast(DeviceInfoActivity.this, "Modify successfully!");
+                                back();
+                            }
+                        } else if ("00".equals(valueStr)) {
+                            if (!TextUtils.isEmpty(unLockResponse)) {
+                                dismissLoadingMessageDialog();
+                                unLockResponse = "";
+                                ToastUtils.showToast(DeviceInfoActivity.this, "Password error");
+                                back();
+                            } else {
+                                LogModule.i("锁定状态，获取unLock，解锁");
+                                MokoSupport.getInstance().sendOrder(OrderTaskAssembler.getUnLock());
+                            }
+                        } else if ("01".equals(valueStr)) {
+                            dismissLoadingMessageDialog();
+                            LogModule.i("解锁成功");
+                            unLockResponse = "";
+                            getSlotType();
+                            getDeviceInfo();
+                        }
+                        break;
+                    case unLock:
+                        if (responseType == OrderTask.RESPONSE_TYPE_READ) {
+                            unLockResponse = MokoUtils.bytesToHexString(value);
+                            LogModule.i("返回的随机数：" + unLockResponse);
+                            MokoSupport.getInstance().sendOrder(OrderTaskAssembler.setUnLock(mPassword, value));
+                        }
+                        if (responseType == OrderTask.RESPONSE_TYPE_WRITE) {
+                            MokoSupport.getInstance().sendOrder(OrderTaskAssembler.getLockState());
+                        }
+                        break;
+                    case resetDevice:
+                        ToastUtils.showToast(DeviceInfoActivity.this, "Reset successfully!");
+                        break;
+                }
+            }
+        });
+    }
+
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
         @Override
@@ -157,248 +378,20 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
 
             if (intent != null) {
                 String action = intent.getAction();
-                if (!BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-                    abortBroadcast();
-                }
-                if (MokoConstants.ACTION_CONNECT_SUCCESS.equals(action)) {
-                    dismissLoadingProgressDialog();
-                    showVerifyingProgressDialog();
-                    mMokoService.mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            mMokoService.sendOrder(mMokoService.getLockState());
-                        }
-                    }, 1000);
-                }
-                if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
-                    if (mIsClose) {
-                        return;
-                    }
-                    dismissSyncProgressDialog();
-                    dismissLoadingProgressDialog();
-                    if (MokoSupport.getInstance().isBluetoothOpen() && !isUpgrade) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
-                        builder.setTitle("Dismiss");
-                        builder.setCancelable(false);
-                        builder.setMessage("The device disconnected!");
-                        builder.setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mMokoService.connDevice(mDeviceMac);
-                                showLoadingProgressDialog();
-                            }
-                        });
-                        builder.setNegativeButton("Exit", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                back();
-                            }
-                        });
-                        builder.show();
-                    }
-                }
-                if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
-                }
-                if (MokoConstants.ACTION_RESPONSE_FINISH.equals(action)) {
-                    dismissSyncProgressDialog();
-                    if (validParams.isEmpty() && validCount < 2) {
-                        validCount++;
-                        showSyncingProgressDialog();
-                        getDeviceInfo();
-                    } else {
-                        validCount = 0;
-                    }
-                }
-                if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
-                    OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
-                    OrderType orderType = response.orderType;
-                    int responseType = response.responseType;
-                    byte[] value = response.responseValue;
-                    switch (orderType) {
-                        case writeConfig:
-                            if (value.length >= 2) {
-                                int key = value[1] & 0xff;
-                                ConfigKeyEnum configKeyEnum = ConfigKeyEnum.fromConfigKey(key);
-                                if (configKeyEnum == null) {
-                                    return;
-                                }
-                                switch (configKeyEnum) {
-                                    case GET_SLOT_TYPE:
-                                        if (value.length >= 9) {
-                                            slotFragment.updateSlotType(value);
-                                        }
-                                        break;
-                                    case GET_DEVICE_MAC:
-                                        if (value.length >= 10) {
-                                            String valueStr = MokoUtils.bytesToHexString(value);
-                                            String mac = valueStr.substring(8, valueStr.length()).toUpperCase();
-                                            String macShow = String.format("%s:%s:%s:%s:%s:%s", mac.substring(0, 2), mac.substring(2, 4), mac.substring(4, 6), mac.substring(6, 8), mac.substring(8, 10), mac.substring(10, 12));
-                                            deviceFragment.setDeviceMac(macShow);
-                                            mDeviceMac = macShow;
-                                            validParams.mac = macShow;
-                                        }
-                                        break;
-                                    case GET_DEVICE_NAME:
-                                        if (value.length >= 4) {
-                                            String valueStr = MokoUtils.bytesToHexString(value);
-                                            String deviceName = MokoUtils.hex2String(valueStr.substring(8, valueStr.length()));
-                                            settingFragment.setDeviceName(deviceName);
-                                            mDeviceName = deviceName;
-                                            validParams.name = deviceName;
-                                        }
-                                        break;
-                                    case GET_CONNECTABLE:
-                                        if (value.length >= 5) {
-                                            settingFragment.setConnectable(value);
-                                            validParams.connectable = MokoUtils.byte2HexString(value[4]);
-                                        }
-                                        break;
-                                    case GET_IBEACON_UUID:
-                                        if (value.length >= 20) {
-                                            slotFragment.setiBeaconUUID(value);
-                                        }
-                                        break;
-                                    case GET_IBEACON_INFO:
-                                        if (value.length >= 9) {
-                                            slotFragment.setiBeaconInfo(value);
-                                        }
-                                        break;
-                                    case SET_DEVICE_NAME:
-                                        if ("eb58000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
-                                            ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
-                                        }
-                                        break;
-                                    case SET_CONNECTABLE:
-                                        if ("eb62000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
-                                            ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
-                                        }
-                                        break;
-                                    case SET_CLOSE:
-                                        if ("eb60000100".equals(MokoUtils.bytesToHexString(value).toLowerCase())) {
-                                            ToastUtils.showToast(DeviceInfoActivity.this, "Success!");
-                                            settingFragment.setClose();
-                                            back();
-                                        }
-                                        break;
-                                }
-                            }
-                            break;
-                        case manufacturer:
-                            deviceFragment.setManufacturer(value);
-                            validParams.manufacture = "1";
-                            break;
-                        case deviceModel:
-                            deviceFragment.setDeviceModel(value);
-                            validParams.productModel = "1";
-                            break;
-                        case productDate:
-                            deviceFragment.setProductDate(value);
-                            validParams.manufactureDate = "1";
-                            break;
-                        case hardwareVersion:
-                            deviceFragment.setHardwareVersion(value);
-                            validParams.hardwareVersion = "1";
-                            break;
-                        case firmwareVersion:
-                            deviceFragment.setFirmwareVersion(value);
-                            validParams.firmwareVersion = "1";
-                            break;
-                        case softwareVersion:
-                            deviceFragment.setSoftwareVersion(value);
-                            validParams.softwareVersion = "1";
-                            break;
-                        case battery:
-                            deviceFragment.setBattery(value);
-                            validParams.battery = "1";
-                            break;
-                        case advSlotData:
-                            if (value.length >= 1) {
-                                slotFragment.setSlotData(value);
-                            }
-                            break;
-                        case radioTxPower:
-                            if (value.length >= 1) {
-                                slotFragment.setTxPower(value);
-                            }
-                            break;
-                        case advInterval:
-                            if (value.length >= 2) {
-                                slotFragment.setAdvInterval(value);
-                            }
-                            break;
-                        case lockState:
-                            String valueStr = MokoUtils.bytesToHexString(value);
-                            if ("eb63000100".equals(valueStr.toLowerCase())) {
-                                // 设备上锁
-                                if (isModifyPassword) {
-                                    isModifyPassword = false;
-                                    dismissSyncProgressDialog();
-                                    ToastUtils.showToast(DeviceInfoActivity.this, "Modify successfully!");
-                                    back();
-                                }
-                            } else if ("00".equals(valueStr)) {
-                                if (!TextUtils.isEmpty(unLockResponse)) {
-                                    dismissVerifyProgressDialog();
-                                    unLockResponse = "";
-                                    ToastUtils.showToast(DeviceInfoActivity.this, "Password error");
-                                    back();
-                                } else {
-                                    LogModule.i("锁定状态，获取unLock，解锁");
-                                    mMokoService.sendOrder(mMokoService.getUnLock());
-                                }
-                            } else if ("01".equals(valueStr)) {
-                                dismissVerifyProgressDialog();
-                                LogModule.i("解锁成功");
-                                unLockResponse = "";
-                                getSlotType();
-                                getDeviceInfo();
-                            }
-                            break;
-                        case unLock:
-                            if (responseType == OrderTask.RESPONSE_TYPE_READ) {
-                                unLockResponse = MokoUtils.bytesToHexString(value);
-                                LogModule.i("返回的随机数：" + unLockResponse);
-                                mMokoService.sendOrder(mMokoService.setConfigNotify(), mMokoService.setUnLock(mPassword, value));
-                            }
-                            if (responseType == OrderTask.RESPONSE_TYPE_WRITE) {
-                                mMokoService.sendOrder(mMokoService.getLockState());
-                            }
-                            break;
-                        case resetDevice:
-                            ToastUtils.showToast(DeviceInfoActivity.this, "Reset successfully!");
-                            break;
-                    }
-                }
-
-                if (MokoConstants.ACTION_RESPONSE_NOTIFY.equals(action)) {
-                    OrderType orderType = (OrderType) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE);
-                    byte[] value = intent.getByteArrayExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE);
-                    switch (orderType) {
-                        case notifyConfig:
-                            String valueHexStr = MokoUtils.bytesToHexString(value);
-                            if ("eb63000100".equals(valueHexStr.toLowerCase())) {
-                                ToastUtils.showToast(DeviceInfoActivity.this, "Device Locked!");
-                                back();
-                            }
-                            break;
-                    }
-                }
                 if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
                     switch (blueState) {
                         case BluetoothAdapter.STATE_TURNING_OFF:
-                            dismissSyncProgressDialog();
-                            AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
-                            builder.setTitle("Dismiss");
-                            builder.setCancelable(false);
-                            builder.setMessage("The current system of bluetooth is not available!");
-                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    back();
-                                }
+                            dismissLoadingProgressDialog();
+                            AlertMessageDialog dialog = new AlertMessageDialog();
+                            dialog.setTitle("Dismiss");
+                            dialog.setMessage("The current system of bluetooth is not available!");
+                            dialog.setConfirm("OK");
+                            dialog.setCancelGone();
+                            dialog.setOnAlertConfirmListener(() -> {
+                                back();
                             });
-                            builder.show();
+                            dialog.show(getSupportFragmentManager());
                             break;
 
                     }
@@ -443,27 +436,7 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mReceiver);
-        unbindService(mServiceConnection);
-    }
-
-    private ProgressDialog syncingDialog;
-
-    public void showSyncingProgressDialog() {
-        syncingDialog = new ProgressDialog(this);
-        syncingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        syncingDialog.setCanceledOnTouchOutside(false);
-        syncingDialog.setCancelable(false);
-        syncingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        syncingDialog.setMessage("Syncing...");
-        if (!isFinishing() && syncingDialog != null && !syncingDialog.isShowing()) {
-            syncingDialog.show();
-        }
-    }
-
-    public void dismissSyncProgressDialog() {
-        if (!isFinishing() && syncingDialog != null && syncingDialog.isShowing()) {
-            syncingDialog.dismiss();
-        }
+        EventBus.getDefault().unregister(this);
     }
 
     @OnClick({R.id.tv_back})
@@ -530,45 +503,53 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
                 break;
             case R.id.radioBtn_setting:
                 showSettingFragment();
-                showSyncingProgressDialog();
+                showLoadingProgressDialog();
                 getDeviceInfo();
                 break;
             case R.id.radioBtn_device:
                 showDeviceFragment();
-                showSyncingProgressDialog();
+                showLoadingProgressDialog();
                 getDeviceInfo();
                 break;
         }
     }
 
     public void setDeviceName(String deviceName) {
-        showSyncingProgressDialog();
-        mMokoService.sendOrder(mMokoService.setDeviceName(deviceName), mMokoService.getDeviceName());
+        showLoadingProgressDialog();
+        List<OrderTask> orderTasks = new ArrayList<>();
+        // setting
+        orderTasks.add(OrderTaskAssembler.setDeviceName(deviceName));
+        orderTasks.add(OrderTaskAssembler.getDeviceName());
+        MokoSupport.getInstance().sendOrder(orderTasks.toArray(new OrderTask[]{}));
     }
 
     private boolean isModifyPassword;
 
     public void modifyPassword(String password) {
         isModifyPassword = true;
-        showSyncingProgressDialog();
-        mMokoService.sendOrder(mMokoService.setLockState(password));
+        showLoadingProgressDialog();
+        MokoSupport.getInstance().sendOrder(OrderTaskAssembler.setLockState(password));
     }
 
     public void resetDevice() {
-        showSyncingProgressDialog();
-        mMokoService.sendOrder(mMokoService.resetDevice());
+        showLoadingProgressDialog();
+        MokoSupport.getInstance().sendOrder(OrderTaskAssembler.resetDevice());
     }
 
 
     public void setConnectable(boolean isConneacted) {
-        showSyncingProgressDialog();
-        mMokoService.sendOrder(mMokoService.setConnectable(isConneacted), mMokoService.getConnectable());
+        showLoadingProgressDialog();
+        List<OrderTask> orderTasks = new ArrayList<>();
+        // setting
+        orderTasks.add(OrderTaskAssembler.setConnectable(isConneacted));
+        orderTasks.add(OrderTaskAssembler.getConnectable());
+        MokoSupport.getInstance().sendOrder(orderTasks.toArray(new OrderTask[]{}));
     }
 
     public void setClose() {
         mIsClose = true;
-        showSyncingProgressDialog();
-        mMokoService.sendOrder(mMokoService.setClose());
+        showLoadingProgressDialog();
+        MokoSupport.getInstance().sendOrder(OrderTaskAssembler.setClose());
     }
 
     public void chooseFirmwareFile() {
@@ -601,18 +582,16 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
         if (!isFinishing() && mDFUDialog != null && mDFUDialog.isShowing()) {
             mDFUDialog.dismiss();
         }
-        AlertDialog.Builder builder = new AlertDialog.Builder(DeviceInfoActivity.this);
-        builder.setTitle("Dismiss");
-        builder.setCancelable(false);
-        builder.setMessage("The device disconnected!");
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                isUpgrade = false;
-                back();
-            }
+        AlertMessageDialog dialog = new AlertMessageDialog();
+        dialog.setTitle("Dismiss");
+        dialog.setMessage("The device disconnected!");
+        dialog.setConfirm("OK");
+        dialog.setCancelGone();
+        dialog.setOnAlertConfirmListener(() -> {
+            isUpgrade = false;
+            back();
         });
-        builder.show();
+        dialog.show(getSupportFragmentManager());
     }
 
     @Override
@@ -691,43 +670,31 @@ public class DeviceInfoActivity extends BaseActivity implements RadioGroup.OnChe
         }
     };
 
-    private ProgressDialog mLoadingDialog;
 
-    private void showLoadingProgressDialog() {
-        mLoadingDialog = new ProgressDialog(DeviceInfoActivity.this);
-        mLoadingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mLoadingDialog.setCanceledOnTouchOutside(false);
-        mLoadingDialog.setCancelable(false);
-        mLoadingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mLoadingDialog.setMessage("Connecting...");
-        if (!isFinishing() && mLoadingDialog != null && !mLoadingDialog.isShowing()) {
-            mLoadingDialog.show();
-        }
+    private LoadingDialog mLoadingDialog;
+
+    public void showLoadingProgressDialog() {
+        mLoadingDialog = new LoadingDialog();
+        mLoadingDialog.show(getSupportFragmentManager());
+
     }
 
-    private void dismissLoadingProgressDialog() {
-        if (!isFinishing() && mLoadingDialog != null && mLoadingDialog.isShowing()) {
-            mLoadingDialog.dismiss();
-        }
+    public void dismissLoadingProgressDialog() {
+        if (mLoadingDialog != null)
+            mLoadingDialog.dismissAllowingStateLoss();
     }
 
-    private ProgressDialog mVerifyingDialog;
+    private LoadingMessageDialog mLoadingMessageDialog;
 
-    private void showVerifyingProgressDialog() {
-        mVerifyingDialog = new ProgressDialog(this);
-        mVerifyingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mVerifyingDialog.setCanceledOnTouchOutside(false);
-        mVerifyingDialog.setCancelable(false);
-        mVerifyingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mVerifyingDialog.setMessage("Verifying...");
-        if (!isFinishing() && mVerifyingDialog != null && !mVerifyingDialog.isShowing()) {
-            mVerifyingDialog.show();
-        }
+    private void showLoadingMessageDialog() {
+        mLoadingMessageDialog = new LoadingMessageDialog();
+        mLoadingMessageDialog.setMessage("Verifying..");
+        mLoadingMessageDialog.show(getSupportFragmentManager());
+
     }
 
-    private void dismissVerifyProgressDialog() {
-        if (!isFinishing() && mVerifyingDialog != null && mVerifyingDialog.isShowing()) {
-            mVerifyingDialog.dismiss();
-        }
+    private void dismissLoadingMessageDialog() {
+        if (mLoadingMessageDialog != null)
+            mLoadingMessageDialog.dismissAllowingStateLoss();
     }
 }

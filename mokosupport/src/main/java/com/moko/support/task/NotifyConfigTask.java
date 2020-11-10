@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class NotifyConfigTask extends OrderTask {
 
     public byte[] data;
 
-    public NotifyConfigTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.notifyConfig, callback, responseType);
+    public NotifyConfigTask(int responseType) {
+        super(OrderType.notifyConfig, responseType);
     }
 
     @Override

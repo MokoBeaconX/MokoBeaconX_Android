@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class LockStateTask extends OrderTask {
 
     public byte[] data;
 
-    public LockStateTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.lockState, callback, responseType);
+    public LockStateTask(int responseType) {
+        super(OrderType.lockState, responseType);
     }
 
     @Override

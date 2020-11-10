@@ -2,19 +2,14 @@ package com.moko.beaconx.activity;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
-import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -22,18 +17,28 @@ import android.widget.TextView;
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
 import com.moko.beaconx.able.ISlotDataAction;
-import com.moko.beaconx.service.MokoService;
+import com.moko.beaconx.dialog.LoadingDialog;
 import com.moko.beaconx.utils.ToastUtils;
 import com.moko.support.MokoConstants;
 import com.moko.support.MokoSupport;
+import com.moko.support.OrderTaskAssembler;
 import com.moko.support.entity.OrderType;
 import com.moko.support.entity.SlotData;
 import com.moko.support.entity.SlotFrameTypeEnum;
+import com.moko.support.event.ConnectStatusEvent;
+import com.moko.support.event.OrderTaskResponseEvent;
 import com.moko.support.log.LogModule;
+import com.moko.support.task.OrderTask;
 import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -41,7 +46,6 @@ import butterknife.OnClick;
 import cn.carbswang.android.numberpickerview.library.NumberPickerView;
 
 public class SlotDataActivity extends FragmentActivity implements NumberPickerView.OnValueChangeListener {
-    public MokoService mMokoService;
     @Bind(R.id.tv_slot_title)
     TextView tvSlotTitle;
     @Bind(R.id.iv_save)
@@ -68,8 +72,6 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
             slotData = (SlotData) getIntent().getSerializableExtra(AppConstants.EXTRA_KEY_SLOT_DATA);
             LogModule.i(slotData.toString());
         }
-        Intent intent = new Intent(this, MokoService.class);
-        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
         fragmentManager = getFragmentManager();
         createFragments();
         npvSlotType.setOnValueChangedListener(this);
@@ -79,6 +81,17 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
         tvSlotTitle.setText(slotData.slotEnum.getTitle());
         showFragment(slotData.frameTypeEnum.ordinal());
         seekBarProgressHashMap = new HashMap<>();
+
+        EventBus.getDefault().register(this);
+        // 注册广播接收器
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mReceiver, filter);
+        if (!MokoSupport.getInstance().isBluetoothOpen()) {
+            // 蓝牙未打开，开启蓝牙
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
+        }
     }
 
     private void createFragments() {
@@ -94,32 +107,57 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
         fragmentTransaction.commit();
     }
 
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mMokoService = ((MokoService.LocalBinder) service).getService();
-            // 注册广播接收器
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(MokoConstants.ACTION_CONNECT_SUCCESS);
-            filter.addAction(MokoConstants.ACTION_CONNECT_DISCONNECTED);
-            filter.addAction(MokoConstants.ACTION_RESPONSE_SUCCESS);
-            filter.addAction(MokoConstants.ACTION_RESPONSE_TIMEOUT);
-            filter.addAction(MokoConstants.ACTION_RESPONSE_FINISH);
-            filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-            filter.setPriority(300);
-            registerReceiver(mReceiver, filter);
-            if (!MokoSupport.getInstance().isBluetoothOpen()) {
-                // 蓝牙未打开，开启蓝牙
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
+    @Subscribe(threadMode = ThreadMode.POSTING, priority = 200)
+    public void onConnectStatusEvent(ConnectStatusEvent event) {
+        final String action = event.getAction();
+        runOnUiThread(() -> {
+            if (MokoConstants.ACTION_CONN_STATUS_DISCONNECTED.equals(action)) {
+                finish();
             }
-        }
+        });
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-        }
-    };
+    @Subscribe(threadMode = ThreadMode.POSTING, priority = 200)
+    public void onOrderTaskResponseEvent(OrderTaskResponseEvent event) {
+        EventBus.getDefault().cancelEventDelivery(event);
+        final String action = event.getAction();
+        runOnUiThread(() -> {
+            if (MokoConstants.ACTION_ORDER_TIMEOUT.equals(action)) {
+            }
+            if (MokoConstants.ACTION_ORDER_FINISH.equals(action)) {
+                ToastUtils.showToast(SlotDataActivity.this, "Successfully configure");
+                dismissLoadingProgressDialog();
+                SlotDataActivity.this.setResult(SlotDataActivity.this.RESULT_OK);
+                SlotDataActivity.this.finish();
+            }
+            if (MokoConstants.ACTION_ORDER_RESULT.equals(action)) {
+                OrderTaskResponse response = event.getResponse();
+                OrderType orderType = response.orderType;
+                int responseType = response.responseType;
+                byte[] value = response.responseValue;
+                switch (orderType) {
+                    case advInterval:
+                        break;
+                }
+            }
+            if (MokoConstants.ACTION_CURRENT_DATA.equals(action)) {
+                OrderTaskResponse response = event.getResponse();
+                OrderType orderType = response.orderType;
+                int responseType = response.responseType;
+                byte[] value = response.responseValue;
+                switch (orderType) {
+                    case notifyConfig:
+                        String valueHexStr = MokoUtils.bytesToHexString(value);
+                        if ("eb63000100".equals(valueHexStr.toLowerCase())) {
+                            // 设备上锁
+                            ToastUtils.showToast(SlotDataActivity.this, "Locked");
+                            SlotDataActivity.this.finish();
+                        }
+                        break;
+                }
+            }
+        });
+    }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
@@ -127,51 +165,11 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
                 String action = intent.getAction();
-                if (MokoConstants.ACTION_CONNECT_DISCONNECTED.equals(action)) {
-                    SlotDataActivity.this.finish();
-                }
-                if (MokoConstants.ACTION_RESPONSE_TIMEOUT.equals(action)) {
-                    abortBroadcast();
-                }
-                if (MokoConstants.ACTION_RESPONSE_FINISH.equals(action)) {
-                    abortBroadcast();
-                    ToastUtils.showToast(SlotDataActivity.this, "Successfully configure");
-                    dismissSyncProgressDialog();
-                    SlotDataActivity.this.setResult(SlotDataActivity.this.RESULT_OK);
-                    SlotDataActivity.this.finish();
-                }
-                if (MokoConstants.ACTION_RESPONSE_SUCCESS.equals(action)) {
-                    abortBroadcast();
-                    OrderTaskResponse response = (OrderTaskResponse) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK);
-                    OrderType orderType = response.orderType;
-                    byte[] value = response.responseValue;
-                    switch (orderType) {
-                        case advInterval:
-                            break;
-                    }
-
-                }
-                if (MokoConstants.ACTION_RESPONSE_NOTIFY.equals(action)) {
-                    abortBroadcast();
-                    OrderType orderType = (OrderType) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE);
-                    byte[] value = intent.getByteArrayExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE);
-                    switch (orderType) {
-                        case notifyConfig:
-                            String valueHexStr = MokoUtils.bytesToHexString(value);
-                            if ("eb63000100".equals(valueHexStr.toLowerCase())) {
-                                // 设备上锁
-                                ToastUtils.showToast(SlotDataActivity.this, "Locked");
-                                SlotDataActivity.this.finish();
-                            }
-                            break;
-                    }
-                }
                 if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                     int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
                     switch (blueState) {
                         case BluetoothAdapter.STATE_TURNING_OFF:
                             // 蓝牙断开
-//                            ToastUtils.showToast(SlotDataActivity.this, "Disconnected");
                             SlotDataActivity.this.finish();
                             break;
 
@@ -184,7 +182,7 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
     @Override
     public void finish() {
         unregisterReceiver(mReceiver);
-        unbindService(mServiceConnection);
+        EventBus.getDefault().unregister(this);
         super.finish();
     }
 
@@ -193,24 +191,17 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
         super.onDestroy();
     }
 
-    private ProgressDialog syncingDialog;
+    private LoadingDialog mLoadingDialog;
 
-    public void showSyncingProgressDialog() {
-        syncingDialog = new ProgressDialog(this);
-        syncingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        syncingDialog.setCanceledOnTouchOutside(false);
-        syncingDialog.setCancelable(false);
-        syncingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        syncingDialog.setMessage("Syncing...");
-        if (!isFinishing() && syncingDialog != null && !syncingDialog.isShowing()) {
-            syncingDialog.show();
-        }
+    private void showLoadingProgressDialog() {
+        mLoadingDialog = new LoadingDialog();
+        mLoadingDialog.show(getSupportFragmentManager());
+
     }
 
-    public void dismissSyncProgressDialog() {
-        if (!isFinishing() && syncingDialog != null && syncingDialog.isShowing()) {
-            syncingDialog.dismiss();
-        }
+    private void dismissLoadingProgressDialog() {
+        if (mLoadingDialog != null)
+            mLoadingDialog.dismissAllowingStateLoss();
     }
 
     @OnClick({R.id.tv_back, R.id.iv_save})
@@ -222,17 +213,16 @@ public class SlotDataActivity extends FragmentActivity implements NumberPickerVi
             case R.id.iv_save:
                 if (slotDataActionImpl == null) {
                     byte[] noData = new byte[]{0};
-                    mMokoService.sendOrder(
-                            // 切换通道，保证通道是在当前设置通道里
-                            mMokoService.setSlot(slotData.slotEnum),
-                            mMokoService.setSlotData(noData)
-                    );
+                    List<OrderTask> orderTasks = new ArrayList<>();
+                    orderTasks.add(OrderTaskAssembler.setSlot(slotData.slotEnum));
+                    orderTasks.add(OrderTaskAssembler.setSlotData(noData));
+                    MokoSupport.getInstance().sendOrder(orderTasks.toArray(new OrderTask[]{}));
                     return;
                 }
                 if (!slotDataActionImpl.isValid()) {
                     return;
                 }
-                showSyncingProgressDialog();
+                showLoadingProgressDialog();
                 slotDataActionImpl.sendData();
                 break;
         }

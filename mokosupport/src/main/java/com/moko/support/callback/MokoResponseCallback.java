@@ -1,5 +1,6 @@
 package com.moko.support.callback;
 
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 
 /**
@@ -16,5 +17,5 @@ public interface MokoResponseCallback {
 
     void onCharacteristicRead(byte[] value);
 
-    void onDescriptorWrite();
+    void onServicesDiscovered(BluetoothGatt gatt);
 }

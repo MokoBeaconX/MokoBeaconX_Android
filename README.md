@@ -76,51 +76,61 @@ You can filter devices according to the 5th and 6th bytes in the field of broadc
 
 
 ```
-if (((int) scanRecord[5] & 0xff) == 0xAA && ((int) scanRecord[6] & 0xff) == 0xFE) {
-            length = (int) scanRecord[7];
-            isEddystone = true;
-        }
-        if (((int) scanRecord[5] & 0xff) == 0x20 && ((int) scanRecord[6] & 0xff) == 0xFF) {
-            length = (int) scanRecord[3];
-            isBeacon = true;
-        }
-        if (((int) scanRecord[5] & 0xff) == 0x10 && ((int) scanRecord[6] & 0xff) == 0xFF) {
-            length = (int) scanRecord[3];
-            isDeviceInfo = true;
-        }
+for (ParcelUuid uuid : map.keySet()) {
+                String serviceDataUuid = uuid.getUuid().toString().toLowerCase();
+                if (TextUtils.isEmpty(serviceDataUuid)) {
+                    continue;
+                }
+                String serviceData = MokoUtils.bytesToHexString(scanRecord.getServiceData(uuid));
+                if (TextUtils.isEmpty(serviceData)) {
+                    continue;
+                }
+                if (serviceDataUuid.contains("feaa")) {
+                    unanalysedData = serviceData;
+                    isEddystone = true;
+                    continue;
+                }
+                if (serviceDataUuid.contains("ff10")) {
+                    unanalysedData = serviceData;
+                    isDeviceInfo = true;
+                    continue;
+                }
+                if (serviceDataUuid.contains("ff20")) {
+                    unanalysedData = serviceData;
+                    isBeacon = true;
+                    continue;
+                }
+            }
 ```
 
 ### 2.2 Connect to the device
 
 
 ```
-MokoSupport.getInstance().connDevice(context, address, mokoConnStateCallback);
+MokoSupport.getInstance().connDevice(context, address);
 ```
 
-When connecting to the device, context, MAC address and callback interface of connection status (`MokoConnStateCallback`) should be transferred in.
-
+When connecting to the device, context, MAC address and callback by EventBus.
 
 ```java
-public interface MokoConnStateCallback {
-
-    /**
-     * @Description  Connecting succeeds
-     */
-    void onConnectSuccess();
-
-    /**
-     * @Description  Disconnect
-     */
-    void onDisConnected();
-}
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onConnectStatusEvent(ConnectStatusEvent event) {
+        String action = event.getAction();
+        if (MokoConstants.ACTION_CONN_STATUS_DISCONNECTED.equals(action)) {
+            ...
+        }
+        if (MokoConstants.ACTION_DISCOVER_SUCCESS.equals(action)) {
+            ...
+        }
+    }
 ```
 
-"Demo Project" implements callback interface in Service. It broadcasts status to Activity after receiving the status, and could send and receive data after connecting to the device.
+It uses `EventBus` to notify activity after receiving the status
 
 ### 2.3 Send and receive data.
 
 All the request data is encapsulated into **TASK**, and sent to the device in a **QUEUE** way.
-SDK gets task status from task callback (`MokoOrderTaskCallback`) after sending tasks successfully.
+SDK gets task status from task callback (`OrderTaskResponse`) after sending tasks successfully.
 
 * **Task**
 
@@ -128,8 +138,7 @@ At present, all the tasks sent from the SDK can be divided into 4 types:
 
 > 1.  READ：Readable
 > 2.  WRITE：Writable
-> 3.  NOTIFY：Can be listened( Need to enable the notification property of the relevant characteristic values)
-> 4.  WRITE_NO_RESPONSE：After enabling the notification property, send data to the device and listen to the data returned by device.
+> 3.  WRITE_NO_RESPONSE：After enabling the notification property, send data to the device and listen to the data returned by device.
 
 Encapsulated tasks are as follows:
 
@@ -224,24 +233,22 @@ public void setSlotData(byte[] value) {
 
 * **Create tasks**
 
-The task callback (`MokoOrderTaskCallback`) and task type need to be passed when creating a task. Some tasks also need corresponding parameters to be passed.
-
 Examples of creating tasks are as follows:
 
 ```
     /**
      * @Description   get LOCK STATE
      */
-    public OrderTask getLockState() {
-        LockStateTask lockStateTask = new LockStateTask(this, OrderTask.RESPONSE_TYPE_READ);
+    public static OrderTask getLockState() {
+        LockStateTask lockStateTask = new LockStateTask(OrderTask.RESPONSE_TYPE_READ);
         return lockStateTask;
     }
 	...
     /**
      * @Description  Set Device Name
      */
-    public OrderTask setDeviceName(String deviceName) {
-        WriteConfigTask writeConfigTask = new WriteConfigTask(this, OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
+    public static OrderTask setDeviceName(String deviceName) {
+        WriteConfigTask writeConfigTask = new WriteConfigTask(OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE);
         writeConfigTask.setDeviceName(deviceName);
         return writeConfigTask;
     }
@@ -249,8 +256,8 @@ Examples of creating tasks are as follows:
     /**
      * @Description   Switch SLOT
      */
-    public OrderTask setSlot(SlotEnum slot) {
-        AdvSlotTask advSlotTask = new AdvSlotTask(this, OrderTask.RESPONSE_TYPE_WRITE);
+    public static OrderTask setSlot(SlotEnum slot) {
+        AdvSlotTask advSlotTask = new AdvSlotTask(OrderTask.RESPONSE_TYPE_WRITE);
         advSlotTask.setData(slot);
         return advSlotTask;
     }
@@ -268,52 +275,53 @@ The task can be one or more.
 * **Task callback**
 
 ```java
-/**
- * @ClassPath com.moko.support.callback.OrderCallback
- */
-public interface MokoOrderTaskCallback {
-
-    void onOrderResult(OrderTaskResponse response);
-
-    void onOrderTimeout(OrderTaskResponse response);
-
-    void onOrderFinish();
-}
+	@Subscribe(threadMode = ThreadMode.MAIN)
+    public void onOrderTaskResponseEvent(OrderTaskResponseEvent event) {
+        final String action = event.getAction();
+        if (MokoConstants.ACTION_ORDER_TIMEOUT.equals(action)) {
+        }
+        if (MokoConstants.ACTION_ORDER_FINISH.equals(action)) {
+        }
+        if (MokoConstants.ACTION_ORDER_RESULT.equals(action)) {
+        }
+    }
+   
 ```
-`void onOrderResult(OrderTaskResponse response);`
+
+`ACTION_ORDER_RESULT`
 
 	After the task is sent to the device, the data returned by the device can be obtained by using the `onOrderResult` function, and you can determine witch class the task is according to the `response.orderType` function. The `response.responseValue` is the returned data.
 
-`void onOrderTimeout(OrderTaskResponse response);`
+`ACTION_ORDER_TIMEOUT`
 
 	Every task has a default timeout of 3 seconds to prevent the device from failing to return data due to a fault and the fail will cause other tasks in the queue can not execute normally. After the timeout, the `onOrderTimeout` will be called back. You can determine witch class the task is according to the `response.orderType` function and then the next task continues.
 
-`void onOrderFinish();`
+`ACTION_ORDER_FINISH`
 
 	When the task in the queue is empty, `onOrderFinish` will be called back.
 
 * **Listening task**
 
-If the task belongs to `NOTIFY` and ` WRITE_NO_RESPONSE` task has been sent, the task is in listening state. When there is data returned from the device, the data will be sent in the form of broadcast, and the action of receiving broadcast is `MokoConstants.ACTION_RESPONSE_NOTIFY`.
+When there is data returned from the device, the data will be sent in the form of broadcast, and the action of receiving broadcast is `MokoConstants.ACTION_CURRENT_DATA`.
 
 ```
 String action = intent.getAction();
 ...
-if (MokoConstants.ACTION_RESPONSE_NOTIFY.equals(action)) {
-                    OrderType orderType = (OrderType) intent.getSerializableExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE);
-                    byte[] value = intent.getByteArrayExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE);
-                    ...
-                }
+if (MokoConstants.ACTION_CURRENT_DATA.equals(action)) {
+    OrderTaskResponse response = event.getResponse();
+    OrderType orderType = response.orderType;
+    int responseType = response.responseType;
+    byte[] value = response.responseValue;
+    ...
+}
 ```
 
-Get `OrderTaskResponse` from the **intent** of `onReceive`, and the corresponding **key** value is `MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TASK`.
+Get `OrderTaskResponse` from the `OrderTaskResponseEvent`, and the corresponding **key** value is `response.responseValue`.
 
 ## 4. Special instructions
 
 > 1. AndroidManifest.xml of SDK has declared to access SD card and get Bluetooth permissions.
-> 2. The SDK comes with logging, and if you want to view the log in the SD card, please to use "LogModule". The log path is : root directory of SD card/mokoBeaconX/mokoLog. It only records the log of the day and the day before.
-> 3. Just connecting to the device successfully, it needs to delay 1 second before sending data, otherwise the device can not return data normally.
-> 4. We suggest that sending and receiving data should be executed in the "Service". There will be a certain delay when the device returns data, and you can broadcast data to the "Activity" after receiving in the "Service". Please refer to the "Demo Project".
+> 2. The SDK comes with logging, and if you want to view the log in the SD card, please to use "LogModule". The log path is : root directory of SD card/mokoBeaconX/mokoBeaconX.txt. It only records the log of the day and the day before.
 
 
 

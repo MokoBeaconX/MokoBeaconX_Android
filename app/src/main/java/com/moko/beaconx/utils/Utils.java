@@ -4,16 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Environment;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 
 public class Utils {
 
@@ -94,29 +91,23 @@ public class Utils {
         return "";
     }
 
-    /**
-     * @Date 2018/1/22
-     * @Author wenzheng.liu
-     * @Description 加密
-     */
-    public static byte[] encrypt(byte[] value, byte[] password) {
-        try {
-            SecretKeySpec key = new SecretKeySpec(password, "AES");// 转换为AES专用密钥
-            Cipher cipher = Cipher.getInstance("AES");// 创建密码器
-            cipher.init(Cipher.ENCRYPT_MODE, key);// 初始化为加密模式的密码器
-            byte[] result = cipher.doFinal(value);// 加密
-            byte[] data = Arrays.copyOf(result, 16);
-            return data;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public static boolean isEmpty(String str) {
         if (str == null || str.length() == 0 || "null".equals(str))
             return true;
         else
             return false;
+    }
+
+    /**
+     * 手机是否开启位置服务，如果没有开启那么所有app将不能使用定位功能
+     */
+    public static boolean isLocServiceEnable(Context context) {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        boolean gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean network = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        if (gps || network) {
+            return true;
+        }
+        return false;
     }
 }

@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class ManufacturerTask extends OrderTask {
 
     public byte[] data;
 
-    public ManufacturerTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.manufacturer, callback, responseType);
+    public ManufacturerTask(int responseType) {
+        super(OrderType.manufacturer, responseType);
     }
 
     @Override

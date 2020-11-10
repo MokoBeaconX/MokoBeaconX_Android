@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class BatteryTask extends OrderTask {
 
     public byte[] data;
 
-    public BatteryTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.battery, callback, responseType);
+    public BatteryTask(int responseType) {
+        super(OrderType.battery, responseType);
     }
 
     @Override

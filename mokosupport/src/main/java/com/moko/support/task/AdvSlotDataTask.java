@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class AdvSlotDataTask extends OrderTask {
 
     public byte[] data;
 
-    public AdvSlotDataTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.advSlotData, callback, responseType);
+    public AdvSlotDataTask(int responseType) {
+        super(OrderType.advSlotData, responseType);
     }
 
     @Override

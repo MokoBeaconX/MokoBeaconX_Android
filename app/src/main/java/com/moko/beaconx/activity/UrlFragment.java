@@ -17,11 +17,17 @@ import com.moko.beaconx.R;
 import com.moko.beaconx.able.ISlotDataAction;
 import com.moko.beaconx.dialog.UrlSchemeDialog;
 import com.moko.beaconx.utils.ToastUtils;
+import com.moko.support.MokoSupport;
+import com.moko.support.OrderTaskAssembler;
 import com.moko.support.entity.SlotFrameTypeEnum;
 import com.moko.support.entity.TxPowerEnum;
 import com.moko.support.entity.UrlExpansionEnum;
 import com.moko.support.entity.UrlSchemeEnum;
+import com.moko.support.task.OrderTask;
 import com.moko.support.utils.MokoUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -285,13 +291,12 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
 
     @Override
     public void sendData() {
-        activity.mMokoService.sendOrder(
-                // 切换通道，保证通道是在当前设置通道里
-                activity.mMokoService.setSlot(activity.slotData.slotEnum),
-                activity.mMokoService.setSlotData(urlParamsBytes),
-                activity.mMokoService.setRadioTxPower(txPowerBytes),
-                activity.mMokoService.setAdvTxPower(advTxPowerBytes),
-                activity.mMokoService.setAdvInterval(advIntervalBytes)
-        );
+        List<OrderTask> orderTasks = new ArrayList<>();
+        orderTasks.add(OrderTaskAssembler.setSlot(activity.slotData.slotEnum));
+        orderTasks.add(OrderTaskAssembler.setSlotData(urlParamsBytes));
+        orderTasks.add(OrderTaskAssembler.setRadioTxPower(txPowerBytes));
+        orderTasks.add(OrderTaskAssembler.setAdvTxPower(advTxPowerBytes));
+        orderTasks.add(OrderTaskAssembler.setAdvInterval(advIntervalBytes));
+        MokoSupport.getInstance().sendOrder(orderTasks.toArray(new OrderTask[]{}));
     }
 }

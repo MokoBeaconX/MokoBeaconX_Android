@@ -1,40 +1,42 @@
 package com.moko.support;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Message;
+import android.content.pm.PackageManager;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 
-import com.moko.support.callback.MokoConnStateCallback;
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.callback.MokoResponseCallback;
 import com.moko.support.callback.MokoScanDeviceCallback;
 import com.moko.support.entity.MokoCharacteristic;
 import com.moko.support.entity.OrderType;
-import com.moko.support.handler.BaseMessageHandler;
+import com.moko.support.event.ConnectStatusEvent;
+import com.moko.support.event.OrderTaskResponseEvent;
 import com.moko.support.handler.MokoCharacteristicHandler;
-import com.moko.support.handler.MokoConnStateHandler;
 import com.moko.support.handler.MokoLeScanHandler;
 import com.moko.support.log.LogModule;
 import com.moko.support.task.OrderTask;
-import com.moko.support.utils.BleConnectionCompat;
+import com.moko.support.task.OrderTaskResponse;
 import com.moko.support.utils.MokoUtils;
 
-import java.lang.reflect.Method;
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import no.nordicsemi.android.ble.BleManagerCallbacks;
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
 import no.nordicsemi.android.support.v18.scanner.ScanFilter;
 import no.nordicsemi.android.support.v18.scanner.ScanSettings;
@@ -46,12 +48,6 @@ import no.nordicsemi.android.support.v18.scanner.ScanSettings;
  * @ClassPath com.moko.support.beacon.MokoSupport
  */
 public class MokoSupport implements MokoResponseCallback {
-    public static final int HANDLER_MESSAGE_WHAT_CONNECTED = 1;
-    public static final int HANDLER_MESSAGE_WHAT_DISCONNECTED = 2;
-    public static final int HANDLER_MESSAGE_WHAT_SERVICES_DISCOVERED = 3;
-    public static final int HANDLER_MESSAGE_WHAT_DISCONNECT = 4;
-    public static final UUID DESCRIPTOR_UUID_NOTIFY = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothGatt mBluetoothGatt;
     private MokoLeScanHandler mMokoLeScanHandler;
@@ -62,6 +58,10 @@ public class MokoSupport implements MokoResponseCallback {
     private static volatile MokoSupport INSTANCE;
 
     private Context mContext;
+
+    private MokoBleManager mokoBleManager;
+
+    private Handler mHandler;
 
     private MokoSupport() {
         //no instance
@@ -82,58 +82,76 @@ public class MokoSupport implements MokoResponseCallback {
     public void init(Context context) {
         LogModule.init(context);
         mContext = context;
-        mHandler = new ServiceMessageHandler(this);
         final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = bluetoothManager.getAdapter();
-    }
+        mHandler = new Handler(Looper.getMainLooper());
+        mokoBleManager = MokoBleManager.getMokoBleManager(context);
+        mokoBleManager.setBeaconResponseCallback(this);
+        mokoBleManager.setGattCallbacks(new BleManagerCallbacks() {
+            @Override
+            public void onDeviceConnecting(@NonNull BluetoothDevice device) {
 
-    private ServiceMessageHandler mHandler;
-
-    public class ServiceMessageHandler extends BaseMessageHandler<MokoSupport> {
-        private MokoConnStateCallback mokoConnStateCallback;
-
-        public ServiceMessageHandler(MokoSupport module) {
-            super(module);
-        }
-
-        @Override
-        protected void handleMessage(MokoSupport module, Message msg) {
-            switch (msg.what) {
-                case HANDLER_MESSAGE_WHAT_CONNECTED:
-                    mBluetoothGatt.discoverServices();
-                    break;
-                case HANDLER_MESSAGE_WHAT_DISCONNECTED:
-                    disConnectBle();
-                    mokoConnStateCallback.onDisConnected();
-                    break;
-                case HANDLER_MESSAGE_WHAT_SERVICES_DISCOVERED:
-                    LogModule.i("连接成功！");
-                    mCharacteristicMap = MokoCharacteristicHandler.getInstance().getCharacteristics(mBluetoothGatt);
-                    mokoConnStateCallback.onConnectSuccess();
-                    break;
-                case HANDLER_MESSAGE_WHAT_DISCONNECT:
-                    if (mQueue != null && !mQueue.isEmpty()) {
-                        mQueue.clear();
-                    }
-                    if (mBluetoothGatt != null) {
-                        if (refreshDeviceCache()) {
-                            LogModule.i("清理GATT层蓝牙缓存");
-                        }
-                        LogModule.i("断开连接");
-                        mBluetoothGatt.close();
-                        mBluetoothGatt.disconnect();
-                    }
-                    break;
             }
-        }
 
-        public void setMokoConnStateCallback(MokoConnStateCallback mokoConnStateCallback) {
-            this.mokoConnStateCallback = mokoConnStateCallback;
-        }
-    }
+            @Override
+            public void onDeviceConnected(@NonNull BluetoothDevice device) {
+            }
 
-    public void setConnStateCallback(final MokoConnStateCallback mokoConnStateCallback) {
-        mHandler.setMokoConnStateCallback(mokoConnStateCallback);
+            @Override
+            public void onDeviceDisconnecting(@NonNull BluetoothDevice device) {
+
+            }
+
+            @Override
+            public void onDeviceDisconnected(@NonNull BluetoothDevice device) {
+                if (isSyncData()) {
+                    mQueue.clear();
+                }
+                ConnectStatusEvent connectStatusEvent = new ConnectStatusEvent();
+                connectStatusEvent.setAction(MokoConstants.ACTION_CONN_STATUS_DISCONNECTED);
+                EventBus.getDefault().post(connectStatusEvent);
+            }
+
+            @Override
+            public void onLinkLossOccurred(@NonNull BluetoothDevice device) {
+
+            }
+
+            @Override
+            public void onServicesDiscovered(@NonNull BluetoothDevice device, boolean optionalServicesFound) {
+
+            }
+
+            @Override
+            public void onDeviceReady(@NonNull BluetoothDevice device) {
+
+            }
+
+            @Override
+            public void onBondingRequired(@NonNull BluetoothDevice device) {
+
+            }
+
+            @Override
+            public void onBonded(@NonNull BluetoothDevice device) {
+
+            }
+
+            @Override
+            public void onBondingFailed(@NonNull BluetoothDevice device) {
+
+            }
+
+            @Override
+            public void onError(@NonNull BluetoothDevice device, @NonNull String message, int errorCode) {
+
+            }
+
+            @Override
+            public void onDeviceNotSupported(@NonNull BluetoothDevice device) {
+
+            }
+        });
     }
 
     /**
@@ -143,28 +161,6 @@ public class MokoSupport implements MokoResponseCallback {
      */
     public boolean isBluetoothOpen() {
         return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
-    }
-
-    /**
-     * @Date 2018/1/16
-     * @Author wenzheng.liu
-     * @Description 打开蓝牙
-     */
-    public void openBluetooth() {
-        if (mBluetoothAdapter != null) {
-            mBluetoothAdapter.enable();
-        }
-    }
-
-    /**
-     * @Date 2018/1/16
-     * @Author wenzheng.liu
-     * @Description 关闭蓝牙
-     */
-    public void closeBluetooth() {
-        if (mBluetoothAdapter != null) {
-            mBluetoothAdapter.disable();
-        }
     }
 
     /**
@@ -179,21 +175,25 @@ public class MokoSupport implements MokoResponseCallback {
     }
 
     public void startScanDevice(MokoScanDeviceCallback mokoScanDeviceCallback) {
-        LogModule.i("开始扫描Beacon");
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            LogModule.i("Start scan");
+        }
         final BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
         ScanSettings settings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                 .build();
-        List<ScanFilter> filters = Collections.singletonList(new ScanFilter.Builder().build());
+        List<ScanFilter> scanFilterList = Collections.singletonList(new ScanFilter.Builder().build());
         mMokoLeScanHandler = new MokoLeScanHandler(mokoScanDeviceCallback);
-        scanner.startScan(filters, settings, mMokoLeScanHandler);
+        scanner.startScan(scanFilterList, settings, mMokoLeScanHandler);
         mMokoScanDeviceCallback = mokoScanDeviceCallback;
         mokoScanDeviceCallback.onStartScan();
     }
 
     public void stopScanDevice() {
         if (mMokoLeScanHandler != null && mMokoScanDeviceCallback != null) {
-            LogModule.i("结束扫描Beacon");
+            if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                LogModule.i("End scan");
+            }
             final BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
             scanner.stopScan(mMokoLeScanHandler);
             mMokoScanDeviceCallback.onStopScan();
@@ -202,71 +202,37 @@ public class MokoSupport implements MokoResponseCallback {
         }
     }
 
-    public void connDevice(final Context context, final String address, final MokoConnStateCallback mokoConnStateCallback) {
+    public void connDevice(final Context context, final String address) {
         if (TextUtils.isEmpty(address)) {
-            LogModule.i("connDevice: 地址为空");
+            LogModule.i("connDevice: address null");
             return;
         }
         if (!isBluetoothOpen()) {
-            LogModule.i("connDevice: 蓝牙未打开");
+            LogModule.i("connDevice: blutooth close");
             return;
         }
         if (isConnDevice(context, address)) {
-            LogModule.i("connDevice: 设备已连接");
+            LogModule.i("connDevice: device connected");
+            disConnectBle();
             return;
         }
-        final MokoConnStateHandler gattCallback = MokoConnStateHandler.getInstance();
-        gattCallback.setBeaconResponseCallback(this);
-        setConnStateCallback(mokoConnStateCallback);
-        gattCallback.setMessageHandler(mHandler);
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device != null) {
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    LogModule.i("开始尝试连接");
-                    mBluetoothGatt = (new BleConnectionCompat(context)).connectGatt(device, false, gattCallback);
+                    LogModule.i("start connect");
+                    mokoBleManager.connect(device)
+                            .retry(5, 200)
+                            .timeout(50000)
+                            .enqueue();
                 }
             });
         } else {
-            LogModule.i("获取蓝牙设备失败");
+            LogModule.i("the device is null");
         }
     }
 
-    /**
-     * @Date 2017/12/13 0013
-     * @Author wenzheng.liu
-     * @Description 断开连接
-     */
-    public void disConnectBle() {
-        mHandler.sendEmptyMessage(MokoSupport.HANDLER_MESSAGE_WHAT_DISCONNECT);
-    }
-
-    /**
-     * @Date 2017/12/13 0013
-     * @Author wenzheng.liu
-     * @Description Clears the internal cache and forces a refresh of the services from the
-     * remote device.
-     */
-    private boolean refreshDeviceCache() {
-        if (mBluetoothGatt != null) {
-            try {
-                BluetoothGatt localBluetoothGatt = mBluetoothGatt;
-                Method localMethod = localBluetoothGatt.getClass().getMethod("refresh", new Class[0]);
-                if (localMethod != null) {
-                    boolean bool = ((Boolean) localMethod.invoke(localBluetoothGatt, new Object[0])).booleanValue();
-                    return bool;
-                }
-            } catch (Exception localException) {
-                LogModule.i("An exception occured while refreshing device");
-            }
-        }
-        return false;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    //
-    ///////////////////////////////////////////////////////////////////////////
     public void sendOrder(OrderTask... orderTasks) {
         if (orderTasks.length == 0) {
             return;
@@ -278,7 +244,7 @@ public class MokoSupport implements MokoResponseCallback {
                 }
                 mQueue.offer(ordertask);
             }
-            executeTask(null);
+            executeTask();
         } else {
             for (OrderTask ordertask : orderTasks) {
                 if (ordertask == null) {
@@ -289,9 +255,14 @@ public class MokoSupport implements MokoResponseCallback {
         }
     }
 
-    private void executeTask(MokoOrderTaskCallback callback) {
-        if (callback != null && !isSyncData()) {
-            callback.onOrderFinish();
+    public void executeTask() {
+        if (!isSyncData()) {
+            OrderTaskResponseEvent event = new OrderTaskResponseEvent();
+            event.setAction(MokoConstants.ACTION_ORDER_FINISH);
+            EventBus.getDefault().post(event);
+            return;
+        }
+        if (mQueue.isEmpty()) {
             return;
         }
         final OrderTask orderTask = mQueue.peek();
@@ -301,6 +272,11 @@ public class MokoSupport implements MokoResponseCallback {
         }
         if (orderTask == null) {
             LogModule.i("executeTask : orderTask is null");
+            return;
+        }
+        if (mCharacteristicMap == null || mCharacteristicMap.isEmpty()) {
+            LogModule.i("executeTask : characteristicMap is null");
+            disConnectBle();
             return;
         }
         final MokoCharacteristic mokoCharacteristic = mCharacteristicMap.get(orderTask.orderType);
@@ -317,26 +293,27 @@ public class MokoSupport implements MokoResponseCallback {
         if (orderTask.response.responseType == OrderTask.RESPONSE_TYPE_WRITE_NO_RESPONSE) {
             sendWriteNoResponseOrder(orderTask, mokoCharacteristic);
         }
-        if (orderTask.response.responseType == OrderTask.RESPONSE_TYPE_NOTIFY) {
-            sendNotifyOrder(orderTask, mokoCharacteristic);
-        }
-        orderTimeoutHandler(orderTask);
+        timeoutHandler(orderTask);
     }
 
-    // 发送可监听命令
-    private void sendNotifyOrder(OrderTask orderTask, final MokoCharacteristic mokoCharacteristic) {
-        LogModule.i("app set device notify : " + orderTask.orderType.getName());
-        final BluetoothGattDescriptor descriptor = mokoCharacteristic.characteristic.getDescriptor(DESCRIPTOR_UUID_NOTIFY);
-        if (descriptor == null) {
-            return;
+    public synchronized boolean isSyncData() {
+        return mQueue != null && !mQueue.isEmpty();
+    }
+
+    public void disConnectBle() {
+        mokoBleManager.disconnect().enqueue();
+    }
+
+    public void enableBluetooth() {
+        if (mBluetoothAdapter != null) {
+            mBluetoothAdapter.enable();
         }
-        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mBluetoothGatt.writeDescriptor(descriptor);
-            }
-        });
+    }
+
+    public void disableBluetooth() {
+        if (mBluetoothAdapter != null) {
+            mBluetoothAdapter.disable();
+        }
     }
 
     // 发送可写命令
@@ -396,19 +373,9 @@ public class MokoSupport implements MokoResponseCallback {
         });
     }
 
-    private void orderTimeoutHandler(final OrderTask orderTask) {
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (orderTask.orderStatus != OrderTask.ORDER_STATUS_SUCCESS) {
-                    LogModule.i("应答超时");
-                    mQueue.poll();
-                    orderTask.mokoOrderTaskCallback.onOrderTimeout(orderTask.response);
-                    executeTask(orderTask.mokoOrderTaskCallback);
-                }
-            }
-        }, orderTask.delayTime);
-    }
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    ///////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onCharacteristicChanged(BluetoothGattCharacteristic characteristic, byte[] value) {
@@ -437,10 +404,13 @@ public class MokoSupport implements MokoResponseCallback {
             // 延时应答
             if (orderType != null) {
                 LogModule.i(orderType.getName());
-                Intent intent = new Intent(MokoConstants.ACTION_RESPONSE_NOTIFY);
-                intent.putExtra(MokoConstants.EXTRA_KEY_RESPONSE_ORDER_TYPE, orderType);
-                intent.putExtra(MokoConstants.EXTRA_KEY_RESPONSE_VALUE, value);
-                mContext.sendOrderedBroadcast(intent, null);
+                OrderTaskResponse response = new OrderTaskResponse();
+                response.orderType = orderType;
+                response.responseValue = value;
+                OrderTaskResponseEvent event = new OrderTaskResponseEvent();
+                event.setAction(MokoConstants.ACTION_CURRENT_DATA);
+                event.setResponse(response);
+                EventBus.getDefault().post(event);
             }
         }
 
@@ -496,26 +466,34 @@ public class MokoSupport implements MokoResponseCallback {
     }
 
     @Override
-    public void onDescriptorWrite() {
-        if (!isSyncData()) {
-            return;
-        }
-        OrderTask orderTask = mQueue.peek();
-        LogModule.i("device to app notify : " + orderTask.orderType.getName());
-        orderTask.orderStatus = OrderTask.ORDER_STATUS_SUCCESS;
-        mQueue.poll();
-        executeTask(orderTask.mokoOrderTaskCallback);
+    public void onServicesDiscovered(BluetoothGatt gatt) {
+        mBluetoothGatt = gatt;
+        mCharacteristicMap = MokoCharacteristicHandler.getInstance().getCharacteristics(gatt);
+        ConnectStatusEvent connectStatusEvent = new ConnectStatusEvent();
+        connectStatusEvent.setAction(MokoConstants.ACTION_DISCOVER_SUCCESS);
+        EventBus.getDefault().post(connectStatusEvent);
     }
 
     private void formatCommonOrder(OrderTask task, byte[] value) {
         task.orderStatus = OrderTask.ORDER_STATUS_SUCCESS;
         task.response.responseValue = value;
         mQueue.poll();
-        task.mokoOrderTaskCallback.onOrderResult(task.response);
-        executeTask(task.mokoOrderTaskCallback);
+        OrderTaskResponseEvent event = new OrderTaskResponseEvent();
+        event.setAction(MokoConstants.ACTION_ORDER_RESULT);
+        event.setResponse(task.response);
+        EventBus.getDefault().post(event);
+        executeTask();
     }
 
-    public synchronized boolean isSyncData() {
-        return mQueue != null && !mQueue.isEmpty();
+    public void pollTask() {
+        if (mQueue != null && !mQueue.isEmpty()) {
+            OrderTask orderTask = mQueue.peek();
+            LogModule.i("remove " + orderTask.orderType.getName());
+            mQueue.poll();
+        }
+    }
+
+    public void timeoutHandler(OrderTask orderTask) {
+        mHandler.postDelayed(orderTask.timeoutRunner, orderTask.delayTime);
     }
 }

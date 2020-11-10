@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class ResetDeviceTask extends OrderTask {
 
     public byte[] data = {(byte) 0x0b};
 
-    public ResetDeviceTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.resetDevice, callback, responseType);
+    public ResetDeviceTask(int responseType) {
+        super(OrderType.resetDevice, responseType);
     }
 
     @Override

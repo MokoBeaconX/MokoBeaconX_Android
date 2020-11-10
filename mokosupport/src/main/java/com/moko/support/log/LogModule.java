@@ -21,8 +21,9 @@ import java.io.File;
  * @ClassPath com.moko.support.log.LogModule
  */
 public class LogModule {
-    private static final String TAG = "mokoLog";
+    private static final String TAG = "mokoBeaconX";
     private static final String LOG_FOLDER = "mokoBeaconX";
+    private static final String LOG_FILE = "mokoBeaconX.txt";
     private static String PATH_LOGCAT;
 
     public static void init(Context context) {
@@ -35,7 +36,7 @@ public class LogModule {
             PATH_LOGCAT = context.getFilesDir().getAbsolutePath() + File.separator + LOG_FOLDER;
         }
         Printer filePrinter = new FilePrinter.Builder(PATH_LOGCAT)
-                .fileNameGenerator(new ChangelessFileNameGenerator(TAG))
+                .fileNameGenerator(new ChangelessFileNameGenerator(LOG_FILE))
                 .backupStrategy(new ClearLogBackStrategy())
                 .logFlattener(new PatternFlattener("{d yyyy-MM-dd HH:mm:ss} {l}/{t}: {m}"))
                 .build();

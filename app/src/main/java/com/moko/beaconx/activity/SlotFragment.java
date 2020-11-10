@@ -14,10 +14,16 @@ import android.widget.TextView;
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
 import com.moko.beaconx.utils.BeaconXParser;
+import com.moko.support.MokoSupport;
+import com.moko.support.OrderTaskAssembler;
 import com.moko.support.entity.SlotData;
 import com.moko.support.entity.SlotEnum;
 import com.moko.support.entity.SlotFrameTypeEnum;
+import com.moko.support.task.OrderTask;
 import com.moko.support.utils.MokoUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -154,24 +160,24 @@ public class SlotFragment extends Fragment {
     }
 
     private void getEddystoneData(SlotEnum slotEnum) {
-        activity.showSyncingProgressDialog();
-        activity.mMokoService.sendOrder(
-                activity.mMokoService.setSlot(slotEnum),
-                activity.mMokoService.getSlotData(),
-                activity.mMokoService.getRadioTxPower(),
-                activity.mMokoService.getAdvInterval()
-        );
+        activity.showLoadingProgressDialog();
+        List<OrderTask> orderTasks = new ArrayList<>();
+        orderTasks.add(OrderTaskAssembler.setSlot(slotEnum));
+        orderTasks.add(OrderTaskAssembler.getSlotData());
+        orderTasks.add(OrderTaskAssembler.getRadioTxPower());
+        orderTasks.add(OrderTaskAssembler.getAdvInterval());
+        MokoSupport.getInstance().sendOrder(orderTasks.toArray(new OrderTask[]{}));
     }
 
     private void getiBeaconData(SlotEnum slotEnum) {
-        activity.showSyncingProgressDialog();
-        activity.mMokoService.sendOrder(
-                activity.mMokoService.setSlot(slotEnum),
-                activity.mMokoService.getiBeaconUUID(),
-                activity.mMokoService.getiBeaconInfo(),
-                activity.mMokoService.getRadioTxPower(),
-                activity.mMokoService.getAdvInterval()
-        );
+        activity.showLoadingProgressDialog();
+        List<OrderTask> orderTasks = new ArrayList<>();
+        orderTasks.add(OrderTaskAssembler.setSlot(slotEnum));
+        orderTasks.add(OrderTaskAssembler.getiBeaconUUID());
+        orderTasks.add(OrderTaskAssembler.getiBeaconInfo());
+        orderTasks.add(OrderTaskAssembler.getRadioTxPower());
+        orderTasks.add(OrderTaskAssembler.getAdvInterval());
+        MokoSupport.getInstance().sendOrder(orderTasks.toArray(new OrderTask[]{}));
     }
 
     // eb 61 00 05 70 50 70 10 70

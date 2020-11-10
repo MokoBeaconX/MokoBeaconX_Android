@@ -1,6 +1,5 @@
 package com.moko.support.task;
 
-import com.moko.support.callback.MokoOrderTaskCallback;
 import com.moko.support.entity.OrderType;
 
 /**
@@ -13,8 +12,8 @@ public class SoftwareVersionTask extends OrderTask {
 
     public byte[] data;
 
-    public SoftwareVersionTask(MokoOrderTaskCallback callback, int responseType) {
-        super(OrderType.softwareVersion, callback, responseType);
+    public SoftwareVersionTask(int responseType) {
+        super(OrderType.softwareVersion, responseType);
     }
 
     @Override

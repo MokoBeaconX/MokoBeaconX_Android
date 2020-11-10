@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/grey_f2f2f2"
@@ -97,19 +98,15 @@
 
     </RelativeLayout>
 
-    <ListView
-        android:id="@+id/lv_devices"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_devices"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="10dp"
         android:layout_weight="1.0"
-        android:cacheColorHint="@color/transparent"
-        android:clipToPadding="false"
-        android:divider="@color/transparent"
-        android:dividerHeight="10dp"
-        android:listSelector="@color/transparent"
+        android:overScrollMode="never"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:scrollbarStyle="outsideOverlay" />
+        tools:listitem="@layout/list_item_device" />
 
 </LinearLayout>
