@@ -21,20 +21,20 @@ import com.moko.support.utils.MokoUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class TlmFragment extends Fragment implements SeekBar.OnSeekBarChangeListener, ISlotDataAction {
 
     private static final String TAG = "TlmFragment";
 
-    @Bind(R.id.sb_adv_interval)
+    @BindView(R.id.sb_adv_interval)
     SeekBar sbAdvInterval;
-    @Bind(R.id.sb_tx_power)
+    @BindView(R.id.sb_tx_power)
     SeekBar sbTxPower;
-    @Bind(R.id.tv_adv_interval)
+    @BindView(R.id.tv_adv_interval)
     TextView tvAdvInterval;
-    @Bind(R.id.tv_tx_power)
+    @BindView(R.id.tv_tx_power)
     TextView tvTxPower;
 
     private SlotDataActivity activity;
@@ -99,7 +99,6 @@ public class TlmFragment extends Fragment implements SeekBar.OnSeekBarChangeList
     public void onDestroyView() {
         Log.i(TAG, "onDestroyView: ");
         super.onDestroyView();
-        ButterKnife.unbind(this);
     }
 
     @Override

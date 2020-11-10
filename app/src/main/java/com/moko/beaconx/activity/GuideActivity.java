@@ -12,11 +12,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
 
 import com.moko.beaconx.AppConstants;
 import com.moko.beaconx.R;
 import com.moko.beaconx.utils.Utils;
+
+import androidx.core.app.ActivityCompat;
 
 
 /**

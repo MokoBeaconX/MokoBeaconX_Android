@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import butterknife.ButterKnife;
-
 /**
  * @Date 2018/1/16
  * @Author wenzheng.liu
@@ -106,9 +104,9 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
 
     private View createUIDView(BeaconXUID uid) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.beaconx_uid, null);
-        TextView tvTxPower = ButterKnife.findById(view, R.id.tv_tx_power);
-        TextView tvNameSpace = ButterKnife.findById(view, R.id.tv_namespace);
-        TextView tvInstanceId = ButterKnife.findById(view, R.id.tv_instance_id);
+        TextView tvTxPower = view.findViewById(R.id.tv_tx_power);
+        TextView tvNameSpace = view.findViewById(R.id.tv_namespace);
+        TextView tvInstanceId = view.findViewById(R.id.tv_instance_id);
         tvTxPower.setText(String.format("RSSI@0m:%sdBm", uid.rangingData));
         tvNameSpace.setText(uid.namespace.toUpperCase());
         tvInstanceId.setText(uid.instanceId.toUpperCase());
@@ -117,8 +115,8 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
 
     private View createURLView(final BeaconXURL url) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.beaconx_url, null);
-        TextView tvTxPower = ButterKnife.findById(view, R.id.tv_tx_power);
-        TextView tvUrl = ButterKnife.findById(view, R.id.tv_url);
+        TextView tvTxPower = view.findViewById(R.id.tv_tx_power);
+        TextView tvUrl = view.findViewById(R.id.tv_url);
         tvTxPower.setText(String.format("RSSI@0m:%sdBm", url.rangingData));
         tvUrl.setText(url.url);
         tvUrl.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG); //下划线
@@ -136,10 +134,10 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
 
     private View createTLMView(BeaconXTLM tlm) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.beaconx_tlm, null);
-        TextView tv_vbatt = ButterKnife.findById(view, R.id.tv_vbatt);
-        TextView tv_temp = ButterKnife.findById(view, R.id.tv_temp);
-        TextView tv_adv_cnt = ButterKnife.findById(view, R.id.tv_adv_cnt);
-        TextView tv_sec_cnt = ButterKnife.findById(view, R.id.tv_sec_cnt);
+        TextView tv_vbatt = view.findViewById(R.id.tv_vbatt);
+        TextView tv_temp = view.findViewById(R.id.tv_temp);
+        TextView tv_adv_cnt = view.findViewById(R.id.tv_adv_cnt);
+        TextView tv_sec_cnt = view.findViewById(R.id.tv_sec_cnt);
         tv_vbatt.setText(String.format("%smV", tlm.vbatt));
         tv_temp.setText(tlm.temp);
         tv_adv_cnt.setText(tlm.adv_cnt);
@@ -149,10 +147,10 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
 
     private View createiBeaconView(BeaconXiBeacon iBeacon) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.beaconx_ibeacon, null);
-        TextView tv_tx_power = ButterKnife.findById(view, R.id.tv_tx_power);
-        TextView tv_uuid = ButterKnife.findById(view, R.id.tv_uuid);
-        TextView tv_major = ButterKnife.findById(view, R.id.tv_major);
-        TextView tv_minor = ButterKnife.findById(view, R.id.tv_minor);
+        TextView tv_tx_power = view.findViewById(R.id.tv_tx_power);
+        TextView tv_uuid = view.findViewById(R.id.tv_uuid);
+        TextView tv_major = view.findViewById(R.id.tv_major);
+        TextView tv_minor = view.findViewById(R.id.tv_minor);
         tv_tx_power.setText("0".equals(iBeacon.rangingData) ? String.format("RSSI@1m:%sdBm", iBeacon.rangingData) :
                 String.format("RSSI@1m:-%sdBm", iBeacon.rangingData));
         tv_uuid.setText(iBeacon.uuid.toUpperCase());

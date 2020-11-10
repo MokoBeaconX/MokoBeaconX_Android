@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -40,19 +39,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import butterknife.Bind;
+import androidx.fragment.app.FragmentActivity;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import cn.carbswang.android.numberpickerview.library.NumberPickerView;
 
 public class SlotDataActivity extends FragmentActivity implements NumberPickerView.OnValueChangeListener {
-    @Bind(R.id.tv_slot_title)
+    @BindView(R.id.tv_slot_title)
     TextView tvSlotTitle;
-    @Bind(R.id.iv_save)
+    @BindView(R.id.iv_save)
     ImageView ivSave;
-    @Bind(R.id.frame_slot_container)
+    @BindView(R.id.frame_slot_container)
     FrameLayout frameSlotContainer;
-    @Bind(R.id.npv_slot_type)
+    @BindView(R.id.npv_slot_type)
     NumberPickerView npvSlotType;
     private FragmentManager fragmentManager;
     private UidFragment uidFragment;

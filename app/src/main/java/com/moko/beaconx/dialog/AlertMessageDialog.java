@@ -1,6 +1,5 @@
 package com.moko.beaconx.dialog;
 
-import android.support.annotation.StringRes;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -10,23 +9,24 @@ import android.widget.TextView;
 
 import com.moko.beaconx.R;
 
-import butterknife.Bind;
+import androidx.annotation.StringRes;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class AlertMessageDialog extends MokoBaseDialog {
     public static final String TAG = AlertMessageDialog.class.getSimpleName();
-    @Bind(R.id.tv_alert_title)
+    @BindView(R.id.tv_alert_title)
     TextView tvAlertTitle;
-    @Bind(R.id.ll_alert_title)
+    @BindView(R.id.ll_alert_title)
     LinearLayout llAlertTitle;
-    @Bind(R.id.tv_alert_message)
+    @BindView(R.id.tv_alert_message)
     TextView tvAlertMessage;
-    @Bind(R.id.tv_alert_cancel)
+    @BindView(R.id.tv_alert_cancel)
     TextView tvAlertCancel;
-    @Bind(R.id.tv_alert_confirm)
+    @BindView(R.id.tv_alert_confirm)
     TextView tvAlertConfirm;
-    @Bind(R.id.view_divider)
+    @BindView(R.id.view_divider)
     View viewDivider;
 
     private String cancel;
@@ -121,7 +121,6 @@ public class AlertMessageDialog extends MokoBaseDialog {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ButterKnife.unbind(this);
     }
 
     private OnAlertCancelListener onAlertCancelListener;

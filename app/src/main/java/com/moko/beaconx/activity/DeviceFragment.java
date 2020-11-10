@@ -11,27 +11,27 @@ import android.widget.TextView;
 import com.moko.beaconx.R;
 import com.moko.support.utils.MokoUtils;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class DeviceFragment extends Fragment {
 
     private static final String TAG = "DeviceFragment";
-    @Bind(R.id.tv_soc)
+    @BindView(R.id.tv_soc)
     TextView tvSoc;
-    @Bind(R.id.tv_mac_address)
+    @BindView(R.id.tv_mac_address)
     TextView tvMacAddress;
-    @Bind(R.id.tv_product_date)
+    @BindView(R.id.tv_product_date)
     TextView tvProductDate;
-    @Bind(R.id.tv_device_model)
+    @BindView(R.id.tv_device_model)
     TextView tvDeviceModel;
-    @Bind(R.id.tv_software_version)
+    @BindView(R.id.tv_software_version)
     TextView tvSoftwareVersion;
-    @Bind(R.id.tv_hardware_version)
+    @BindView(R.id.tv_hardware_version)
     TextView tvHardwareVersion;
-    @Bind(R.id.tv_manufacturer)
+    @BindView(R.id.tv_manufacturer)
     TextView tvManufacturer;
-    @Bind(R.id.tv_firmware_version)
+    @BindView(R.id.tv_firmware_version)
     TextView tvFirmwareVersion;
 
 
@@ -74,7 +74,6 @@ public class DeviceFragment extends Fragment {
     public void onDestroyView() {
         Log.i(TAG, "onDestroyView: ");
         super.onDestroyView();
-        ButterKnife.unbind(this);
     }
 
     @Override

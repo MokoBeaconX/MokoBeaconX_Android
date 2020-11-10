@@ -19,18 +19,18 @@ import com.moko.support.utils.MokoUtils;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class SettingFragment extends Fragment {
 
     private static final String TAG = "SettingFragment";
-    @Bind(R.id.tv_device_name)
+    @BindView(R.id.tv_device_name)
     TextView tvDeviceName;
-    @Bind(R.id.iv_connectable)
+    @BindView(R.id.iv_connectable)
     ImageView ivConnectable;
-    @Bind(R.id.iv_power)
+    @BindView(R.id.iv_power)
     ImageView ivPower;
 
     private DeviceInfoActivity activity;
@@ -75,7 +75,6 @@ public class SettingFragment extends Fragment {
     public void onDestroyView() {
         Log.i(TAG, "onDestroyView: ");
         super.onDestroyView();
-        ButterKnife.unbind(this);
     }
 
     @Override

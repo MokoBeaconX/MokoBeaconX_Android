@@ -6,12 +6,12 @@ import android.widget.TextView;
 
 import com.moko.beaconx.R;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class BeaconAlertDialog extends BaseDialog<String> {
 
-    @Bind(R.id.tv_connect_alert)
+    @BindView(R.id.tv_connect_alert)
     TextView tvConnectAlert;
 
     public BeaconAlertDialog(Context context) {

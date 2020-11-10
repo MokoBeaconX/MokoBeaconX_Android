@@ -9,13 +9,13 @@ import android.widget.TextView;
 import com.moko.beaconx.R;
 import com.moko.beaconx.utils.Utils;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 
 public class AboutActivity extends BaseActivity {
-    @Bind(R.id.app_version)
+    @BindView(R.id.app_version)
     TextView appVersion;
 
     @Override

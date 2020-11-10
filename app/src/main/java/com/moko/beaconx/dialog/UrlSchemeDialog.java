@@ -8,20 +8,20 @@ import android.widget.RadioGroup;
 import com.moko.beaconx.R;
 import com.moko.support.entity.UrlSchemeEnum;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class UrlSchemeDialog extends BaseDialog<String> {
 
-    @Bind(R.id.rg_url_scheme)
+    @BindView(R.id.rg_url_scheme)
     RadioGroup rgUrlScheme;
-    @Bind(R.id.rb_http_www)
+    @BindView(R.id.rb_http_www)
     RadioButton rbHttpWww;
-    @Bind(R.id.rb_https_www)
+    @BindView(R.id.rb_https_www)
     RadioButton rbHttpsWww;
-    @Bind(R.id.rb_http)
+    @BindView(R.id.rb_http)
     RadioButton rbHttp;
-    @Bind(R.id.rb_https)
+    @BindView(R.id.rb_https)
     RadioButton rbHttps;
 
     public UrlSchemeDialog(Context context) {

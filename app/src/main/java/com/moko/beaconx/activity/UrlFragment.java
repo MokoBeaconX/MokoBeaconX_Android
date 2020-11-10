@@ -29,7 +29,7 @@ import com.moko.support.utils.MokoUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
@@ -37,21 +37,21 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
 
     private static final String TAG = "UrlFragment";
     private final String FILTER_ASCII = "\\A\\p{ASCII}*\\z";
-    @Bind(R.id.et_url)
+    @BindView(R.id.et_url)
     EditText etUrl;
-    @Bind(R.id.sb_adv_interval)
+    @BindView(R.id.sb_adv_interval)
     SeekBar sbAdvInterval;
-    @Bind(R.id.sb_adv_tx_power)
+    @BindView(R.id.sb_adv_tx_power)
     SeekBar sbAdvTxPower;
-    @Bind(R.id.sb_tx_power)
+    @BindView(R.id.sb_tx_power)
     SeekBar sbTxPower;
-    @Bind(R.id.tv_url_scheme)
+    @BindView(R.id.tv_url_scheme)
     TextView tvUrlScheme;
-    @Bind(R.id.tv_adv_interval)
+    @BindView(R.id.tv_adv_interval)
     TextView tvAdvInterval;
-    @Bind(R.id.tv_adv_tx_power)
+    @BindView(R.id.tv_adv_tx_power)
     TextView tvAdvTxPower;
-    @Bind(R.id.tv_tx_power)
+    @BindView(R.id.tv_tx_power)
     TextView tvTxPower;
 
 
@@ -158,7 +158,6 @@ public class UrlFragment extends Fragment implements SeekBar.OnSeekBarChangeList
     public void onDestroyView() {
         Log.i(TAG, "onDestroyView: ");
         super.onDestroyView();
-        ButterKnife.unbind(this);
     }
 
     @Override

@@ -9,15 +9,15 @@ import android.widget.EditText;
 import com.moko.beaconx.R;
 import com.moko.beaconx.utils.ToastUtils;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class ModifyPasswordDialog extends BaseDialog {
 
 
-    @Bind(R.id.et_new_password)
+    @BindView(R.id.et_new_password)
     EditText etNewPassword;
-    @Bind(R.id.et_new_password_re)
+    @BindView(R.id.et_new_password_re)
     EditText etNewPasswordRe;
 
     public ModifyPasswordDialog(Context context) {

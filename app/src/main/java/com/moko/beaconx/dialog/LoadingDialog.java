@@ -1,6 +1,5 @@
 package com.moko.beaconx.dialog;
 
-import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
@@ -8,13 +7,14 @@ import android.widget.ImageView;
 import com.moko.beaconx.R;
 import com.moko.beaconx.view.ProgressDrawable;
 
-import butterknife.Bind;
+import androidx.core.content.ContextCompat;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class LoadingDialog extends MokoBaseDialog {
 
     public static final String TAG = LoadingDialog.class.getSimpleName();
-    @Bind(R.id.iv_loading)
+    @BindView(R.id.iv_loading)
     ImageView ivLoading;
 
     @Override
@@ -66,6 +66,5 @@ public class LoadingDialog extends MokoBaseDialog {
     public void onDestroyView() {
         super.onDestroyView();
         ((ProgressDrawable) ivLoading.getDrawable()).stop();
-        ButterKnife.unbind(this);
     }
 }

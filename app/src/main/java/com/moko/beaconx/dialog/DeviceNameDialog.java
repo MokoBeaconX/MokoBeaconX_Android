@@ -11,13 +11,13 @@ import android.widget.EditText;
 import com.moko.beaconx.R;
 import com.moko.beaconx.utils.ToastUtils;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 public class DeviceNameDialog extends BaseDialog {
     private final String FILTER_ASCII = "\\A\\p{ASCII}*\\z";
 
-    @Bind(R.id.et_device_name)
+    @BindView(R.id.et_device_name)
     EditText etDeviceName;
 
     public DeviceNameDialog(Context context) {
