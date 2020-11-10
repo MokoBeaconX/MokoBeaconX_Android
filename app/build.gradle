@@ -1,21 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 29
+    buildToolsVersion '29.0.0'
 
     defaultConfig {
         applicationId "com.moko.beaconx"
         minSdkVersion 18
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 8
         versionName "2.1.5"
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                includeCompileClasspath = true
-            }
-        }
     }
 
     buildTypes {
@@ -27,17 +21,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    signingConfigs {
-        debug {
-            v1SigningEnabled true
-            v2SigningEnabled true
-        }
-        release {
-            v1SigningEnabled true
-            v2SigningEnabled true
-        }
     }
 
     applicationVariants.all { variant ->
@@ -55,17 +38,6 @@ android {
     }
 }
 
-configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        def requested = details.requested
-        if (requested.group == 'com.android.support') {
-            if (!requested.name.startsWith("multidex")) {
-                details.useVersion '28.0.0'
-            }
-        }
-    }
-}
-
 dependencies {
     implementation fileTree(include: '*.jar', dir: 'libs')
     implementation project(path: ':mokosupport')
@@ -78,5 +50,4 @@ dependencies {
     implementation 'com.github.GrenderG:Toasty:1.4.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'cn.carbswang.android:NumberPickerView:1.1.1'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 }
