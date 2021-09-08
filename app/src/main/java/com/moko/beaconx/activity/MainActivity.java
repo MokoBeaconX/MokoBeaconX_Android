@@ -64,6 +64,9 @@ import butterknife.OnClick;
 
 public class MainActivity extends BaseActivity implements MokoScanDeviceCallback, BaseQuickAdapter.OnItemChildClickListener {
 
+    /*
+    * Test Commit in Main Activity
+    * */
 
     @BindView(R.id.iv_refresh)
     ImageView ivRefresh;
