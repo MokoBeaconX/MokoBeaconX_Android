@@ -9,11 +9,15 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.moko.support.callback.MokoResponseCallback;
 import com.moko.support.callback.MokoScanDeviceCallback;
@@ -30,9 +34,11 @@ import com.moko.support.utils.MokoUtils;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -40,6 +46,13 @@ import no.nordicsemi.android.ble.BleManagerCallbacks;
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat;
 import no.nordicsemi.android.support.v18.scanner.ScanFilter;
 import no.nordicsemi.android.support.v18.scanner.ScanSettings;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * @Date 2017/12/7 0007
@@ -202,6 +215,7 @@ public class MokoSupport implements MokoResponseCallback {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void connDevice(final Context context, final String address) {
         if (TextUtils.isEmpty(address)) {
             LogModule.i("connDevice: address null");
@@ -226,6 +240,29 @@ public class MokoSupport implements MokoResponseCallback {
                             .retry(5, 200)
                             .timeout(50000)
                             .enqueue();
+                }
+            });
+            OkHttpClient client = new OkHttpClient();
+            String url = "http://172.30.141.216:5000/asd";
+            RequestBody form_body = new FormBody.Builder().add("hello","weeee").build();
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(form_body)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    call.cancel();
+                    Log.d("Output: ","AHHHHHHHH");
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+
+                    final String myResponse = response.body().string();
+
+                    Log.d("Output: ",myResponse);
                 }
             });
         } else {
