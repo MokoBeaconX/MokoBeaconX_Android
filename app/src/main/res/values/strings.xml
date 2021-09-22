@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">MokoBeaconX</string>
     <string name="about_title">About</string>
+    <string name="rest_page">Rest Page</string>
     <string name="company_name">MOKO TECHNOLOGY LTD.</string>
     <string name="company_website">www.mokosmart.com</string>
     <string name="please_enter_password">Please enter password</string>

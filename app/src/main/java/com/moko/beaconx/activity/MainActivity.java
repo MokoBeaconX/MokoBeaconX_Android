@@ -350,7 +350,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     public String filterName;
     public int filterRssi = -127;
 
-    @OnClick({R.id.iv_refresh, R.id.iv_about, R.id.rl_edit_filter, R.id.rl_filter, R.id.iv_filter_delete})
+    @OnClick({R.id.iv_refresh, R.id.iv_about, R.id.iv_rest, R.id.rl_edit_filter, R.id.rl_filter, R.id.iv_filter_delete})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.iv_refresh:
@@ -369,6 +369,9 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 break;
             case R.id.iv_about:
                 startActivity(new Intent(this, AboutActivity.class));
+                break;
+            case R.id.iv_rest:
+                startActivity(new Intent(this, RestActivity.class));
                 break;
             case R.id.rl_edit_filter:
             case R.id.rl_filter:

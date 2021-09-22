@@ -36,6 +36,16 @@
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:src="@drawable/about" />
+
+        <ImageView
+            android:id="@+id/iv_rest"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="64dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:src="@drawable/about" />
     </RelativeLayout>
 
     <RelativeLayout
