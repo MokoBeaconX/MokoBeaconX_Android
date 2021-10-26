@@ -15,6 +15,7 @@
     <string name="setting_title">Setting</string>
     <string name="device_title">Device info</string>
     <string name="setting_syncing">syncing</string>
+    <string name="ip_address">0.0.0.0</string>
 
     <string name="permission_storage_close_title">Storage permission is not available</string>
     <string name="permission_storage_close_content">Please find it in cellphone setting- permission, and allow MokoBeaconX use the Storage permission</string>

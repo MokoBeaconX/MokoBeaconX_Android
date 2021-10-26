@@ -32,7 +32,7 @@
     </RelativeLayout>
 
     <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/ipadd"
+        android:id="@+id/iv_ipadd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -40,58 +40,75 @@
         android:textSize="20sp"
         android:hint="hint" />
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/staffid"
+    <TextView
+        android:id="@+id/address"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/ipadd"
+        android:layout_below="@id/iv_ipadd"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:text="0.0.0.0"
+        android:textColor="@color/black_012d75"
+        android:textSize="20sp" />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/iv_staffid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/address"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:textSize="20sp"
         android:hint="hint" />
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/repeat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/staffid"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
-        android:hint="hint"
-        android:textSize="20sp" />
-
-
     <TextView
-        android:id="@+id/settings"
+        android:id="@+id/s_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/repeat"
+        android:layout_below="@id/iv_staffid"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:text="IP Address: not set, Staff ID: not set, Repeat Count: not set"
+        android:text="Staff ID"
         android:textColor="@color/grey_b3b3b3"
         android:textSize="20sp" />
 
-    <TextView
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/iv_repeat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/s_id"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="50dp"
-        android:text="@string/company_name"
-        android:textColor="@color/black_333333"
-        android:textSize="20sp" />
+        android:layout_marginTop="15dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:hint="hint" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
-        android:id="@+id/tv_company_website"
+        android:id="@+id/repeat_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/iv_repeat"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="15dp"
-        android:text="@string/company_website"
-        android:textColor="@color/blue_5691fc"
+        android:layout_marginTop="20dp"
+        android:text="Count"
+        android:textColor="@color/grey_b3b3b3"
         android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/repeat_count"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="161.5dp"
+        android:layout_marginTop="38dp"
+        android:layout_marginEnd="161.5dp"
+        android:text="Button" />
 
 
 </RelativeLayout>

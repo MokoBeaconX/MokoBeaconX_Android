@@ -242,29 +242,6 @@ public class MokoSupport implements MokoResponseCallback {
                             .enqueue();
                 }
             });
-            OkHttpClient client = new OkHttpClient();
-            String url = "http://172.30.141.216:5000/asd";
-            RequestBody form_body = new FormBody.Builder().add("hello","weeee").build();
-            Request request = new Request.Builder()
-                    .url(url)
-                    .post(form_body)
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    call.cancel();
-                    Log.d("Output: ","AHHHHHHHH");
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-
-                    final String myResponse = response.body().string();
-
-                    Log.d("Output: ",myResponse);
-                }
-            });
         } else {
             LogModule.i("the device is null");
         }

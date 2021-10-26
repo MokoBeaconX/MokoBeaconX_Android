@@ -7,8 +7,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -44,7 +46,9 @@ import com.moko.support.utils.MokoUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -60,6 +64,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class MainActivity extends BaseActivity implements MokoScanDeviceCallback, BaseQuickAdapter.OnItemChildClickListener {
@@ -82,7 +93,10 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     TextView tv_filter;
     private HashMap<String, BeaconXInfo> beaconXInfoHashMap;
     private ArrayList<BeaconXInfo> beaconXInfos;
+    private ArrayList<BeaconXInfo> beaconREST;
     private BeaconXListAdapter adapter;
+    private String ip_address = "";
+    private String user_id = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +119,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mReceiver, filter);
+
         if (animation == null) {
             startScan();
         }
@@ -211,6 +226,13 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            Log.v("have", "stuff");
+            if (data.hasExtra("ip_address") && data.hasExtra("user_id")) {
+                ip_address = data.getStringExtra("ip_address");
+                user_id = data.getStringExtra("user_id");
+            }
+        }
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case MokoConstants.REQUEST_CODE_ENABLE_BT:
@@ -266,12 +288,47 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
             return;
         }
         beaconXInfoHashMap.put(beaconXInfo.mac, beaconXInfo);
+        if(beaconXInfoHashMap.size() == 4){
+            MokoSupport.getInstance().stopScanDevice();
+        }
     }
 
     @Override
     public void onStopScan() {
         findViewById(R.id.iv_refresh).clearAnimation();
         animation = null;
+
+        // Post to server
+        if(!ip_address.isEmpty() && !user_id.isEmpty()) {
+            ArrayList<String> beacons = new ArrayList();
+            Iterator<BeaconXInfo> iterator = beaconXInfos.iterator();
+            while (iterator.hasNext()) {
+                BeaconXInfo beaconXInfo = iterator.next();
+                beacons.add("\""+beaconXInfo.mac+"\"");
+            }
+            OkHttpClient client = new OkHttpClient();
+            RequestBody form_body = new FormBody.Builder().add("user_id", user_id).add("beacons", String.valueOf(beacons)).build();
+            Request request = new Request.Builder()
+                    .url(ip_address)
+                    .post(form_body)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    call.cancel();
+                    Log.d("Output: ", "AHHHHHHHH");
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+
+                    final String myResponse = response.body().string();
+
+                    Log.d("Output: ", myResponse);
+                }
+            });
+        }
     }
 
     private void updateDevices() {
@@ -371,7 +428,8 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 startActivity(new Intent(this, AboutActivity.class));
                 break;
             case R.id.iv_rest:
-                startActivity(new Intent(this, RestActivity.class));
+                Intent acti = new Intent(this, RestActivity.class);
+                startActivityForResult(acti, 1);
                 break;
             case R.id.rl_edit_filter:
             case R.id.rl_filter:
