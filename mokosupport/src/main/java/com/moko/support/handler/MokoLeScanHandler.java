@@ -27,10 +27,11 @@ public class MokoLeScanHandler extends ScanCallback {
             BluetoothDevice device = result.getDevice();
             byte[] scanRecord = result.getScanRecord().getBytes();
             int rssi = result.getRssi();
+            DeviceInfo deviceInfo = null;
             if (scanRecord.length == 0 || rssi < -127 || rssi == 127) {
                 return;
             }
-            DeviceInfo deviceInfo = new DeviceInfo();
+            deviceInfo = new DeviceInfo();
             deviceInfo.name = result.getScanRecord().getDeviceName();
             deviceInfo.rssi = rssi;
             deviceInfo.mac = device.getAddress();
