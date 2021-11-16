@@ -58,6 +58,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
@@ -84,9 +86,8 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
 
     @BindView(R.id.iv_refresh)
     ImageView ivRefresh;
-    private HashMap<String, BeaconXInfo> beaconXInfoHashMap;
-    private ArrayList<BeaconXInfo> beaconXInfos;
-    private ArrayList<BeaconXInfo> beaconREST;
+    private ConcurrentHashMap<String, BeaconXInfo> beaconXInfoHashMap;
+    private CopyOnWriteArrayList<BeaconXInfo> beaconXInfos;
     //private BeaconXListAdapter adapter;
     private String ip_address = "";
     private String user_id = "";
@@ -97,8 +98,8 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        beaconXInfoHashMap = new HashMap<>();
-        beaconXInfos = new ArrayList<>();
+        beaconXInfoHashMap = new ConcurrentHashMap<>();
+        beaconXInfos = new CopyOnWriteArrayList<>();
         mHandler = new CunstomHandler(this);
         //EventBus.getDefault().register(this);
         IntentFilter filter = new IntentFilter();
@@ -178,16 +179,16 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
             }
         }).start();
 
-        new Thread(() -> {
-            while (enableToggle != false) {
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                beaconXInfoHashMap.clear();
-            }
-        }).start();
+//        new Thread(() -> {
+//            while (enableToggle != false) {
+//                try {
+//                    Thread.sleep(10000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                beaconXInfoHashMap.clear();
+//            }
+//        }).start();
     }
 
     private BeaconXInfoParseableImpl beaconXInfoParseable;
@@ -199,6 +200,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
             return;
         }
         beaconXInfoHashMap.put(beaconXInfo.mac, beaconXInfo);
+
     }
 
     @Override
@@ -212,7 +214,8 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
         if(!ip_address.isEmpty() && !user_id.isEmpty()) {
             OkHttpClient client = new OkHttpClient();
             RequestBody form_body;
-            if(beaconXInfos.size() > 0) {
+            Log.d("beacons: ", beaconXInfos.toString());
+            if(!beaconXInfos.isEmpty()) {
                 ArrayList<String> beacons = new ArrayList();
                 Iterator<BeaconXInfo> iterator = beaconXInfos.iterator();
                 int z = 0;
@@ -221,6 +224,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                     beacons.add("\""+beaconXInfo.mac+"\"");
                     z++;
                 }
+                Log.d("beaconsxx: ", beacons.toString());
                 form_body = new FormBody.Builder().add("user_id", user_id).add("beacons", String.valueOf(beacons)).build();
             }
             else{
@@ -251,46 +255,51 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
 
     private void updateDevices() {
         beaconXInfos.clear();
-        if (!TextUtils.isEmpty(filterName) || filterRssi != -127) {
-            ArrayList<BeaconXInfo> beaconXInfosFilter = new ArrayList<>(beaconXInfoHashMap.values());
-            Iterator<BeaconXInfo> iterator = beaconXInfosFilter.iterator();
-            while (iterator.hasNext()) {
-                BeaconXInfo beaconXInfo = iterator.next();
-                if (beaconXInfo.rssi > filterRssi) {
-                    if (TextUtils.isEmpty(filterName)) {
-                        continue;
-                    } else {
-                        if (TextUtils.isEmpty(beaconXInfo.name) && TextUtils.isEmpty(beaconXInfo.mac)) {
-                            iterator.remove();
-                        } else if (TextUtils.isEmpty(beaconXInfo.name) && beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase())) {
-                            continue;
-                        } else if (TextUtils.isEmpty(beaconXInfo.mac) && beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase())) {
-                            continue;
-                        } else if (!TextUtils.isEmpty(beaconXInfo.name) && !TextUtils.isEmpty(beaconXInfo.mac) && (beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase()) || beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase()))) {
+        if (!beaconXInfoHashMap.isEmpty()) {
+            if (!TextUtils.isEmpty(filterName) || filterRssi != -127) {
+                ArrayList<BeaconXInfo> beaconXInfosFilter = new ArrayList<>(beaconXInfoHashMap.values());
+                Iterator<BeaconXInfo> iterator = beaconXInfosFilter.iterator();
+                while (iterator.hasNext()) {
+                    BeaconXInfo beaconXInfo = iterator.next();
+                    if (beaconXInfo.rssi > filterRssi) {
+                        if (TextUtils.isEmpty(filterName)) {
                             continue;
                         } else {
-                            iterator.remove();
+                            if (TextUtils.isEmpty(beaconXInfo.name) && TextUtils.isEmpty(beaconXInfo.mac)) {
+                                iterator.remove();
+                            } else if (TextUtils.isEmpty(beaconXInfo.name) && beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase())) {
+                                continue;
+                            } else if (TextUtils.isEmpty(beaconXInfo.mac) && beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase())) {
+                                continue;
+                            } else if (!TextUtils.isEmpty(beaconXInfo.name) && !TextUtils.isEmpty(beaconXInfo.mac) && (beaconXInfo.name.toLowerCase().contains(filterName.toLowerCase()) || beaconXInfo.mac.toLowerCase().replaceAll(":", "").contains(filterName.toLowerCase()))) {
+                                continue;
+                            } else {
+                                iterator.remove();
+                            }
                         }
+                    } else {
+                        iterator.remove();
                     }
-                } else {
-                    iterator.remove();
                 }
+                beaconXInfos.addAll(beaconXInfosFilter);
+            } else {
+                        beaconXInfos.addAll(beaconXInfoHashMap.values());
             }
-            beaconXInfos.addAll(beaconXInfosFilter);
-        } else {
-            beaconXInfos.addAll(beaconXInfoHashMap.values());
+            if(beaconXInfos.size() > 1) {
+                Log.d("size: ", String.valueOf(beaconXInfos.size()));
+                Collections.sort(beaconXInfos, new Comparator<BeaconXInfo>() {
+                    @Override
+                    public int compare(BeaconXInfo lhs, BeaconXInfo rhs) {
+                        if (lhs.rssi > rhs.rssi) {
+                            return -1;
+                        } else if (lhs.rssi < rhs.rssi) {
+                            return 1;
+                        }
+                        return 0;
+                    }
+                });
+            }
         }
-        Collections.sort(beaconXInfos, new Comparator<BeaconXInfo>() {
-            @Override
-            public int compare(BeaconXInfo lhs, BeaconXInfo rhs) {
-                if (lhs.rssi > rhs.rssi) {
-                    return -1;
-                } else if (lhs.rssi < rhs.rssi) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
     }
 
 
@@ -323,15 +332,15 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 enableToggle = !enableToggle;
                 if(enableToggle == true) {
                     if(!ip_address.isEmpty() && !user_id.isEmpty()) {
-                        startScan();
                         new Thread() {
                             @Override
                             public void run() {
                                 while(enableToggle && !ip_address.isEmpty() && !user_id.isEmpty()) {
                                     try {
-                                        Thread.sleep(2000);
+                                        startScan();
+                                        Thread.sleep(3000);
+                                        MokoSupport.getInstance().stopScanDevice();
                                         sendBeaconInfo();
-                                        //beaconXInfoHashMap.clear();
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -366,12 +375,13 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
         findViewById(R.id.iv_refresh).startAnimation(animation);
         beaconXInfoParseable = new BeaconXInfoParseableImpl();
         MokoSupport.getInstance().startScanDevice(this);
-        //mHandler.postDelayed(new Runnable() {
-        //    @Override
-        //    public void run() {
-        //        MokoSupport.getInstance().stopScanDevice();
-        //    }
-        //}, 1000 * 60);
+//        mHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                MokoSupport.getInstance().stopScanDevice();
+//                sendBeaconInfo();
+//            }
+//           }, 2000);
     }
 
     public CunstomHandler mHandler;
