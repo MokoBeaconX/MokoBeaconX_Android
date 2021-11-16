@@ -168,25 +168,15 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     @Override
     public void onStartScan() {
         beaconXInfoHashMap.clear();
-        new Thread(() -> {
-            while (enableToggle != false) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                updateDevices();
-            }
-        }).start();
-
+        beaconXInfos.clear();
 //        new Thread(() -> {
 //            while (enableToggle != false) {
 //                try {
-//                    Thread.sleep(10000);
+//                    Thread.sleep(100);
 //                } catch (InterruptedException e) {
 //                    e.printStackTrace();
 //                }
-//                beaconXInfoHashMap.clear();
+//                updateDevices();
 //            }
 //        }).start();
     }
@@ -254,7 +244,6 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     }
 
     private void updateDevices() {
-        beaconXInfos.clear();
         if (!beaconXInfoHashMap.isEmpty()) {
             if (!TextUtils.isEmpty(filterName) || filterRssi != -127) {
                 ArrayList<BeaconXInfo> beaconXInfosFilter = new ArrayList<>(beaconXInfoHashMap.values());
@@ -281,12 +270,10 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                         iterator.remove();
                     }
                 }
-                beaconXInfos.addAll(beaconXInfosFilter);
+                    beaconXInfos.addAll(beaconXInfosFilter);
             } else {
                         beaconXInfos.addAll(beaconXInfoHashMap.values());
             }
-            if(beaconXInfos.size() > 1) {
-                Log.d("size: ", String.valueOf(beaconXInfos.size()));
                 Collections.sort(beaconXInfos, new Comparator<BeaconXInfo>() {
                     @Override
                     public int compare(BeaconXInfo lhs, BeaconXInfo rhs) {
@@ -298,7 +285,6 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                         return 0;
                     }
                 });
-            }
         }
     }
 
@@ -307,23 +293,9 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
     public String filterName;
     public int filterRssi = -127;
 
-    @OnClick({R.id.iv_refresh, R.id.iv_rest, R.id.enable_switch})
+    @OnClick({R.id.iv_rest, R.id.enable_switch})
     public void onViewClicked(View view) {
         switch (view.getId()) {
-            case R.id.iv_refresh:
-                if (!MokoSupport.getInstance().isBluetoothOpen()) {
-                    // 蓝牙未打开，开启蓝牙
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(enableBtIntent, MokoConstants.REQUEST_CODE_ENABLE_BT);
-                    return;
-                }
-                if (animation == null) {
-                    startScan();
-                } else {
-                    mHandler.removeMessages(0);
-                    MokoSupport.getInstance().stopScanDevice();
-                }
-                break;
             case R.id.iv_rest:
                 Intent acti = new Intent(this, RestActivity.class);
                 startActivityForResult(acti, 1);
@@ -332,14 +304,15 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 enableToggle = !enableToggle;
                 if(enableToggle == true) {
                     if(!ip_address.isEmpty() && !user_id.isEmpty()) {
+                        startScan();
                         new Thread() {
                             @Override
                             public void run() {
                                 while(enableToggle && !ip_address.isEmpty() && !user_id.isEmpty()) {
                                     try {
-                                        startScan();
+                                        onStartScan();
                                         Thread.sleep(3000);
-                                        MokoSupport.getInstance().stopScanDevice();
+                                        updateDevices();
                                         sendBeaconInfo();
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
@@ -376,12 +349,13 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
         beaconXInfoParseable = new BeaconXInfoParseableImpl();
         MokoSupport.getInstance().startScanDevice(this);
 //        mHandler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                MokoSupport.getInstance().stopScanDevice();
-//                sendBeaconInfo();
-//            }
-//           }, 2000);
+//           @Override
+//           public void run() {
+//               MokoSupport.getInstance().stopScanDevice();
+//               updateDevices();
+//               sendBeaconInfo();
+//           }
+//         }, 3000);
     }
 
     public CunstomHandler mHandler;
