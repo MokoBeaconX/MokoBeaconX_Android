@@ -78,37 +78,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/s_id"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:hint="hint" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <TextView
-        android:id="@+id/repeat_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/iv_repeat"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:text="Count"
-        android:textColor="@color/grey_b3b3b3"
-        android:textSize="20sp" />
-
-    <Button
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/repeat_count"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="161.5dp"
-        android:layout_marginTop="38dp"
-        android:layout_marginEnd="161.5dp"
-        android:text="Button" />
+        android:layout_marginTop="15dp"/>
 
 
 </RelativeLayout>
