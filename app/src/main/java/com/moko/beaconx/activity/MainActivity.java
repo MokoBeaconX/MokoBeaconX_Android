@@ -206,16 +206,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
             RequestBody form_body;
             Log.d("beacons: ", beaconXInfos.toString());
             if(!beaconXInfos.isEmpty()) {
-                ArrayList<String> beacons = new ArrayList();
-                Iterator<BeaconXInfo> iterator = beaconXInfos.iterator();
-                int z = 0;
-                while (iterator.hasNext() && z < 3) {
-                    BeaconXInfo beaconXInfo = iterator.next();
-                    beacons.add("\""+beaconXInfo.mac+"\"");
-                    z++;
-                }
-                Log.d("beaconsxx: ", beacons.toString());
-                form_body = new FormBody.Builder().add("user_id", user_id).add("beacons", String.valueOf(beacons)).build();
+                form_body = new FormBody.Builder().add("user_id", user_id).add("beacons", String.valueOf(beaconXInfos.get(0))).build();
             }
             else{
                 form_body = new FormBody.Builder().add("user_id", user_id).add("beacons", "No Nearby Beacons").build();
