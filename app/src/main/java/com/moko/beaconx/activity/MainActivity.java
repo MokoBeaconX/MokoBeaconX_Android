@@ -212,7 +212,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 form_body = new FormBody.Builder().add("user_id", user_id).add("beacons", "No Nearby Beacons").build();
             }
             Request request = new Request.Builder()
-                    .url(ip_address)
+                    .url(ip_address+"/receive_beacon")
                     .post(form_body)
                     .build();
 
