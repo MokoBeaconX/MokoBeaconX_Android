@@ -1,5 +1,6 @@
 package com.moko.beaconx.activity;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -215,7 +216,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                     .url("http://"+ip_address+"/receive_beacon")
                     .post(form_body)
                     .build();
-
+            Long startTime = System.currentTimeMillis();
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
@@ -227,8 +228,13 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 public void onResponse(Call call, Response response) throws IOException {
 
                     final String myResponse = response.body().string();
-
-                    Log.d("Output: ", myResponse);
+                    Long endTime = System.currentTimeMillis();
+                    CharSequence text = "Response Time: "+String.valueOf((endTime - startTime));
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             });
         }
@@ -302,7 +308,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                                 while(enableToggle && !ip_address.isEmpty() && !user_id.isEmpty()) {
                                     try {
                                         onStartScan();
-                                        Thread.sleep(3000);
+                                        Thread.sleep(30000);
                                         updateDevices();
                                         sendBeaconInfo();
                                     } catch (InterruptedException e) {

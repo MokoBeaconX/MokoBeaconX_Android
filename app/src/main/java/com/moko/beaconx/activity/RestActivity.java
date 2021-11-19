@@ -25,8 +25,8 @@ public class RestActivity extends BaseActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rest);
         ButterKnife.bind(this);
-        ip_address = "http://192.168.1.248:5000/asd";
-        user_id = "SafetyDistancingAmbassador1";
+        ip_address = "";
+        user_id = "";
     }
 
     @OnClick({R.id.tv_back})
