@@ -228,13 +228,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                 public void onResponse(Call call, Response response) throws IOException {
 
                     final String myResponse = response.body().string();
-                    Long endTime = System.currentTimeMillis();
-                    CharSequence text = "Response Time: "+String.valueOf((endTime - startTime));
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    Log.d("Response Time: ", String.valueOf((System.currentTimeMillis() - startTime)));
                 }
             });
         }
@@ -308,7 +302,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                                 while(enableToggle && !ip_address.isEmpty() && !user_id.isEmpty()) {
                                     try {
                                         onStartScan();
-                                        Thread.sleep(30000);
+                                        Thread.sleep(4000);
                                         updateDevices();
                                         sendBeaconInfo();
                                     } catch (InterruptedException e) {
