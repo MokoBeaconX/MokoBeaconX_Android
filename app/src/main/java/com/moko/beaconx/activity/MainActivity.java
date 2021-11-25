@@ -302,7 +302,7 @@ public class MainActivity extends BaseActivity implements MokoScanDeviceCallback
                                 while(enableToggle && !ip_address.isEmpty() && !user_id.isEmpty()) {
                                     try {
                                         onStartScan();
-                                        Thread.sleep(4000);
+                                        Thread.sleep(5000);
                                         updateDevices();
                                         sendBeaconInfo();
                                     } catch (InterruptedException e) {
