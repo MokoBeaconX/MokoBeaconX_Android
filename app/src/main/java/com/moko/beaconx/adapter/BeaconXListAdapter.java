@@ -39,6 +39,7 @@ public class BeaconXListAdapter extends BaseQuickAdapter<BeaconXInfo, BaseViewHo
 
     @Override
     protected void convert(BaseViewHolder helper, BeaconXInfo item) {
+
         helper.setText(R.id.tv_name, TextUtils.isEmpty(item.name) ? "N/A" : item.name);
         helper.setText(R.id.tv_mac, "MAC:" + item.mac);
         helper.setText(R.id.tv_rssi, item.rssi + "");

@@ -24,4 +24,12 @@ dependencies {
     api 'no.nordicsemi.android:dfu:0.6.2'
     api 'org.greenrobot:eventbus:3.1.1'
     implementation 'no.nordicsemi.android:ble:2.0.5'
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+
+    // define a BOM and its version
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.1"))
+
+    // define any required OkHttp artifacts without version
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
 }

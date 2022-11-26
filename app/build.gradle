@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.moko.beaconx"
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 29
         versionCode 10
         versionName "2.1.7"
@@ -43,6 +43,7 @@ dependencies {
     implementation project(path: ':mokosupport')
     // Butter Knife
     implementation 'com.jakewharton:butterknife:10.2.1'
+    implementation 'com.google.android.material:material:1.4.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.30'
@@ -50,4 +51,12 @@ dependencies {
     implementation 'com.github.GrenderG:Toasty:1.4.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'cn.carbswang.android:NumberPickerView:1.1.1'
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+
+    // define a BOM and its version
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.1"))
+
+    // define any required OkHttp artifacts without version
+    implementation("com.squareup.okhttp3:okhttp")
+    implementation("com.squareup.okhttp3:logging-interceptor")
 }

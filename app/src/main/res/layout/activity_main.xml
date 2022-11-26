@@ -29,84 +29,32 @@
             android:textSize="17sp" />
 
         <ImageView
-            android:id="@+id/iv_about"
+            android:id="@+id/iv_rest"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
+            android:layout_marginRight="17dp"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
             android:src="@drawable/about" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/rl_edit_filter"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/shape_radius_white_bg"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:drawableLeft="@drawable/filter_search"
-            android:drawablePadding="10dp"
-            android:gravity="center_vertical"
-            android:text="Edit Filter"
-            android:textColor="@color/grey_d9d9d9"
-            android:textSize="16sp" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:src="@drawable/filter_arrow" />
 
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@+id/rl_filter"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/shape_radius_white_bg"
-        android:paddingLeft="10dp"
-        android:visibility="gone">
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="@color/white_ffffff">
 
-        <TextView
-            android:id="@+id/tv_filter"
+        <Switch
+            android:id="@+id/enable_switch"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:text=""
-            android:textColor="@color/black_333333"
-            android:textSize="16sp" />
-
-        <ImageView
-            android:id="@+id/iv_filter_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:src="@drawable/filter_delete" />
-
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginStart="91dp"
+            android:layout_marginEnd="87dp"
+            android:text="Enable Tracking" />
     </RelativeLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_devices"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="10dp"
-        android:layout_weight="1.0"
-        android:overScrollMode="never"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        tools:listitem="@layout/list_item_device" />
 
 </LinearLayout>

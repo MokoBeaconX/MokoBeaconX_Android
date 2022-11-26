@@ -26,60 +26,59 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="@string/about_title"
+            android:text="@string/rest_page"
             android:textColor="@color/white_ffffff"
             android:textSize="17sp" />
     </RelativeLayout>
 
-    <ImageView
-        android:id="@+id/iv_logo"
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/iv_ipadd"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="100dp"
-        android:src="@drawable/logo" />
+        android:textSize="20sp"
+        android:hint="hint" />
 
     <TextView
-        android:id="@+id/app_name"
+        android:id="@+id/address"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/iv_logo"
+        android:layout_below="@id/iv_ipadd"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
-        android:text="@string/app_name"
+        android:text="0.0.0.0"
         android:textColor="@color/black_012d75"
         android:textSize="20sp" />
 
-    <TextView
-        android:id="@+id/app_version"
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/iv_staffid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/app_name"
+        android:layout_below="@id/address"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:textSize="20sp"
+        android:hint="hint" />
+
+    <TextView
+        android:id="@+id/s_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/iv_staffid"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:text="Version:1.0.0"
+        android:text="Staff ID"
         android:textColor="@color/grey_b3b3b3"
         android:textSize="20sp" />
 
-
-    <TextView
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/iv_repeat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@id/s_id"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="50dp"
-        android:text="@string/company_name"
-        android:textColor="@color/black_333333"
-        android:textSize="20sp" />
+        android:layout_marginTop="15dp"/>
 
-    <TextView
-        android:id="@+id/tv_company_website"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="15dp"
-        android:text="@string/company_website"
-        android:textColor="@color/blue_5691fc"
-        android:textSize="20sp" />
+
 </RelativeLayout>
